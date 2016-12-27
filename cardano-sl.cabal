@@ -312,6 +312,7 @@ library
                       , mono-traversable
                       , mtl
                       , neat-interpolation
+                      , node-sketch
                       , optparse-applicative
                       , optparse-simple
                       , parsec
