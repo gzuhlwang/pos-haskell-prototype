@@ -15,10 +15,13 @@ import           Data.Tagged                       (Tagged (..))
 import           System.Wlog                       (logWarning)
 import           Universum                         hiding (ask)
 
+import           Pos.Block.Network.Request         (mkHeadersRequest)
+import           Pos.Communication.Methods         (sendToNeighborsSafe)
 import           Pos.Constants                     (k, mdNoBlocksSlotThreshold,
                                                     mdNoCommitmentsEpochThreshold)
 import           Pos.Context                       (getNodeContext, ncPublicKey)
-import           Pos.DB                            (getTipBlock, loadBlocksFromTipWhile)
+import           Pos.DB                            (getTipBlock, getTipBlockHeader,
+                                                    loadBlocksFromTipWhile)
 import           Pos.Slotting                      (onNewSlot)
 import           Pos.Ssc.Class.Types               (Ssc (..))
 import           Pos.Ssc.GodTossing.Types.Instance ()
@@ -27,7 +30,8 @@ import           Pos.Ssc.GodTossing.Types.Types    (GtPayload (..), SscBi)
 import           Pos.Ssc.NistBeacon                (SscNistBeacon)
 import           Pos.Types                         (EpochIndex, MainBlock, SlotId (..),
                                                     blockMpc, flattenSlotId, gbHeader,
-                                                    gbhConsensus, gcdEpoch, headerSlot)
+                                                    gbhConsensus, gcdEpoch, headerSlot,
+                                                    headerHash)
 import           Pos.Types.Address                 (addressHash)
 import           Pos.WorkMode                      (WorkMode)
 
@@ -46,6 +50,9 @@ instance SecurityWorkersClass SscNistBeacon where
 reportAboutEclipsed :: WorkMode ssc m => m ()
 reportAboutEclipsed = logWarning "We're doomed, we're eclipsed!"
 
+requestNewHeaders :: WorkMode ssc m => m ()
+requestNewHeaders = sendToNeighborsSafe =<< mkHeadersRequest . Just . headerHash =<< getTipBlockHeader
+
 checkForReceivedBlocksWorker :: WorkMode ssc m => m ()
 checkForReceivedBlocksWorker = onNewSlot True $ \slotId -> do
     headBlock <- getTipBlock
@@ -56,8 +63,9 @@ checkForReceivedBlocksWorker = onNewSlot True $ \slotId -> do
     compareSlots slotId blockGeneratedId = do
         let fSlotId = flattenSlotId slotId
         let fBlockGeneratedSlotId = flattenSlotId blockGeneratedId
-        when (fSlotId - fBlockGeneratedSlotId > mdNoBlocksSlotThreshold)
+        when (fSlotId - fBlockGeneratedSlotId > mdNoBlocksSlotThreshold) $ do
             reportAboutEclipsed
+            requestNewHeaders
 
 checkForIgnoredCommitmentsWorker :: forall m. WorkMode SscGodTossing m => m ()
 checkForIgnoredCommitmentsWorker = do
