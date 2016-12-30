@@ -7,7 +7,8 @@ module Pos.Launcher.Scenario
        ) where
 
 import           Control.Concurrent.MVar (putMVar)
-import           Control.TimeWarp.Timed  (currentTime, for, fork, sleepForever, wait)
+import           Mockable.Concurrent     (wait, sleepForever, fork)
+import           Control.TimeWarp.Timed  (currentTime, for)
 import           Formatting              (build, sformat, (%))
 import           System.Wlog             (logError, logInfo)
 import           Universum

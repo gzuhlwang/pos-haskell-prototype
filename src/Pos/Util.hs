@@ -1,3 +1,4 @@
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
@@ -5,6 +6,17 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+=======
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 -- | Miscellaneous unclassified utility functions.
 
@@ -75,12 +87,22 @@ module Pos.Util
 import           Control.Lens                  (Lens', LensLike', Magnified, Zoomed,
                                                 lensRules, magnify, zoom)
 import           Control.Lens.Internal.FieldTH (makeFieldOpticsForDec)
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
 import qualified Control.Monad                 as Monad (fail)
 import           Control.TimeWarp.Rpc          (Dialog (..), Message (messageName),
                                                 MessageName, ResponseT (..),
                                                 Transfer (..))
 import           Control.TimeWarp.Timed        (Microsecond, MonadTimed (fork, wait),
                                                 Second, TimedIO, for, killThread)
+=======
+import           Control.Monad.Fail            (MonadFail, fail)
+import           Control.TimeWarp.Rpc          (Message (messageName), MessageName)
+import           Control.TimeWarp.Timed        (Microsecond,
+                                                Second, for)
+import           Mockable.Concurrent           (wait, fork, killThread)
+import           Mockable.Monad                (MonadMockable)
+
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 import qualified Data.Cache.LRU                as LRU
 import           Data.Hashable                 (Hashable)
 import qualified Data.HashMap.Strict           as HM
@@ -298,10 +320,10 @@ data WaitingDelta
     deriving (Show)
 
 -- | Constraint for something that can be logged in parallel with other action.
-type CanLogInParallel m = (MonadIO m, MonadTimed m, WithLogger m)
+type CanLogInParallel m = (MonadIO m, WithLogger m)
 
 -- | Run action and print warning if it takes more time than expected.
-logWarningLongAction :: CanLogInParallel m => WaitingDelta -> Text -> m a -> m a
+logWarningLongAction :: (CanLogInParallel m, MonadMockable m) => WaitingDelta -> Text -> m a -> m a
 logWarningLongAction delta actionTag action = do
     logThreadId <- fork $ waitAndWarn delta
     action      <* killThread logThreadId
@@ -328,21 +350,21 @@ logWarningLongAction delta actionTag action = do
 {- Helper functions to avoid dealing with data type -}
 
 -- | Specialization of 'logWarningLongAction' with 'WaitOnce'.
-logWarningWaitOnce :: CanLogInParallel m => Second -> Text -> m a -> m a
+logWarningWaitOnce :: (CanLogInParallel m, MonadMockable m) => Second -> Text -> m a -> m a
 logWarningWaitOnce = logWarningLongAction . WaitOnce
 
 -- | Specialization of 'logWarningLongAction' with 'WaiLinear'.
-logWarningWaitLinear :: CanLogInParallel m => Second -> Text -> m a -> m a
+logWarningWaitLinear :: (CanLogInParallel m, MonadMockable m) => Second -> Text -> m a -> m a
 logWarningWaitLinear = logWarningLongAction . WaitLinear
 
 -- | Specialization of 'logWarningLongAction' with 'WaitGeometric'
 -- with parameter @1.3@. Accepts 'Second'.
-logWarningWaitInf :: CanLogInParallel m => Second -> Text -> m a -> m a
+logWarningWaitInf :: (CanLogInParallel m, MonadMockable m) => Second -> Text -> m a -> m a
 logWarningWaitInf = logWarningLongAction . (`WaitGeometric` 1.3) . convertUnit
 
 -- | Wait random number of 'Microsecond'`s between min and max.
 waitRandomInterval
-    :: (MonadIO m, MonadTimed m)
+    :: (MonadIO m, MonadMockable m)
     => Microsecond -> Microsecond -> m ()
 waitRandomInterval minT maxT = do
     interval <-
@@ -352,7 +374,7 @@ waitRandomInterval minT maxT = do
 
 -- | Wait random interval and then perform given action.
 runWithRandomIntervals
-    :: (MonadIO m, MonadTimed m, WithLogger m)
+    :: (MonadIO m, WithLogger m, MonadMockable m)
     => Microsecond -> Microsecond -> m () -> m ()
 runWithRandomIntervals minT maxT action = do
   waitRandomInterval minT maxT

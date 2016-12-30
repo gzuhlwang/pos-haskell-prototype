@@ -22,7 +22,9 @@ import           Control.TimeWarp.Rpc            (Binding (..), ListenerH (..),
                                                   NetworkAddress, RawData (..),
                                                   TransferException (..), listenR, sendH,
                                                   sendR)
-import           Control.TimeWarp.Timed          (MonadTimed, fork, killThread, ms, sec)
+import           Control.TimeWarp.Timed          (ms, sec)
+import           Mockable.Concurrent             (fork, killThread)
+import           Mockable.Monad                  (MonadMockable)
 
 import qualified Data.Cache.LRU                  as LRU
 import           Data.Hashable                   (hash)
@@ -59,8 +61,12 @@ import           Pos.DHT.Real.Types              (DHTHandle, KademliaDHT (..),
 import           Pos.Util                        (runWithRandomIntervals,
                                                   waitAnyUnexceptional)
 
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
 kademliaConfig :: K.KademliaConfig
 kademliaConfig = K.defaultConfig { K.k = 16 }
+=======
+import           Node                            (startNode)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 -- | Run 'KademliaDHT' with provided 'KademliaDHTContext'
 runKademliaDHTRaw :: KademliaDHTContext m -> KademliaDHT m a -> m a
@@ -74,7 +80,7 @@ getKademliaDHTCtx = KademliaDHT ask
 runKademliaDHT
     :: ( WithLogger m
        , MonadIO m
-       , MonadTimed m
+       , MonadMockable m
        , MonadDHTDialog s m
        , MonadMask m
        , MonadBaseControl IO m
@@ -105,7 +111,7 @@ runKademliaDHT kdc@(KademliaDHTConfig {..}) action =
       atomically $ modifyTVar tvar (closer:)
 
 -- | Stop DHT algo.
-stopDHT :: (MonadTimed m, MonadIO m) => KademliaDHT m ()
+stopDHT :: (MonadIO m, MonadMockable m) => KademliaDHT m ()
 stopDHT = do
     (closersTV, stoppedTV) <- KademliaDHT $ (,)
             <$> asks kdcAuxClosers
@@ -122,8 +128,8 @@ stopDHTInstance KademliaDHTInstance {..} = liftIO $ K.close kdiHandle
 
 -- | Start 'KademliaDHTInstance' with 'KademliaDHTInstanceConfig'.
 startDHTInstance
-    :: ( MonadTimed m
-       , MonadIO m
+    :: ( MonadIO m
+       , MonadMockable m
        , WithLogger m
        , MonadCatch m
        , MonadBaseControl IO m
@@ -154,8 +160,8 @@ startDHTInstance KademliaDHTInstanceConfig {..} = do
     log' logF =  usingLoggerName ("kademlia" <> "messager") . logF . toText
 
 startDHT
-    :: ( MonadTimed m
-       , MonadIO m
+    :: ( MonadIO m
+       , MonadMockable m
        , MonadDHTDialog s m
        , WithLogger m
        , MonadMask m
@@ -168,8 +174,16 @@ startDHT KademliaDHTConfig {..} = do
     msgCache <- atomically $
         newTVar (LRU.newLRU (Just $ toInteger kdcMessageCacheSize) :: LRU.LRU Int ())
     let kdcListenByBinding binding = do
-            closer <- listenR binding (convert <$> kdcListeners)
-                (convert' $ rawListener kdcEnableBroadcast msgCache kdcStopped)
+            closer <- listenR binding
+                              (convert <$> kdcListeners)
+                              (convert' $ rawListener kdcEnableBroadcast msgCache kdcStopped)
+            -- startNode
+            --       NT.EndPoint m
+            --    -> StdGen
+            --    -> [Worker header m]
+            --    -> Maybe (PreListener header m)
+            --    -> [Listener header m]
+            --    -> m (Node m)
             logInfo $ sformat ("Listening on binding " % shown) binding
             return closer
     logInfo $ sformat ("Launching Kademlia, noCacheMessageNames=" % shown) kdcNoCacheMessageNames
@@ -188,7 +202,7 @@ rawListener
        , MonadMask m
        , MonadDHTDialog s m
        , MonadIO m
-       , MonadTimed m
+       , MonadMockable m
        , WithLogger m
        )
     => Bool
@@ -236,18 +250,18 @@ sendToNetworkR
        , WithLogger m
        , MonadCatch m
        , MonadIO m
-       , MonadDHTDialog s m
-       , MonadTimed m
+       , MonadMockable m
+       , MonadDHTDialog s m 
        ) => RawData -> KademliaDHT m ()
 sendToNetworkR = sendToNetworkImpl sendR
 
 sendToNetworkImpl
-    :: (MonadBaseControl IO m
-       ,WithLogger m
-       ,MonadCatch m
-       ,MonadIO m
-       ,MonadTimed m
-       ,MonadDHTDialog s m
+    :: ( MonadBaseControl IO m
+       , WithLogger m
+       , MonadCatch m
+       , MonadIO m
+       , MonadMockable m
+       , MonadDHTDialog s m
        )
     => (NetworkAddress -> DHTMsgHeader -> msg -> KademliaDHT m ())
     -> msg
@@ -263,7 +277,7 @@ instance ( MonadDHTDialog s m
          , WithLogger m
          , MonadCatch m
          , MonadIO m
-         , MonadTimed m
+         , MonadMockable m
          , MonadBaseControl IO m
          , Bi DHTData
          , Bi DHTKey

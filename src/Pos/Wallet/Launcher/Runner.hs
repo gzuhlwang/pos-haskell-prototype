@@ -9,7 +9,8 @@ module Pos.Wallet.Launcher.Runner
        ) where
 
 import           Control.Monad.Trans.Resource (allocate, runResourceT)
-import           Control.TimeWarp.Timed       (fork, sleepForever)
+import           Mockable.Concurrent          (fork, sleepForever)
+import           Mockable.Production          (Production)
 import           Formatting                   (build, sformat, (%))
 import           System.Wlog                  (logInfo)
 import           Universum
@@ -49,7 +50,7 @@ runWalletRealMode
     :: KademliaDHTInstance
     -> WalletParams
     -> WalletRealMode a
-    -> IO a
+    -> Production a
 runWalletRealMode inst wp@WalletParams {..} = runRawRealWallet inst wp listeners
   where
     listeners = addDevListeners wpSystemStart allListeners
@@ -58,7 +59,7 @@ runWalletReal
     :: KademliaDHTInstance
     -> WalletParams
     -> [WalletRealMode ()]
-    -> IO ()
+    -> Production ()
 runWalletReal inst wp  = runWalletRealMode inst wp . runWallet
 
 runWallet :: WalletMode ssc m => [m ()] -> m ()
@@ -75,7 +76,7 @@ runRawRealWallet
     -> WalletParams
     -> [ListenerDHT SState WalletRealMode]
     -> WalletRealMode a
-    -> IO a
+    -> Production a
 runRawRealWallet inst wp@WalletParams {..} listeners action = runResourceT $ do
     setupLoggers lp
     db <- snd <$> allocate openDB closeDB

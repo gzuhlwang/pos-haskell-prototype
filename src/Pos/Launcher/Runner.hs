@@ -34,6 +34,7 @@ import           Control.Lens                 (each, to, (%~), (^..), (^?), _hea
 import           Control.Monad.Catch          (bracket)
 import           Control.Monad.Trans.Control  (MonadBaseControl)
 import           Control.Monad.Trans.Resource (runResourceT)
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
 import           Control.TimeWarp.Rpc         (ConnectionPool, Dialog, Transfer,
                                                commLoggerName, runDialog, runTransfer,
                                                runTransferRaw, setForkStrategy)
@@ -41,6 +42,16 @@ import           Control.TimeWarp.Timed       (MonadTimed, currentTime, fork, ki
                                                repeatForever, runTimedIO, runTimedIO, sec)
 
 import           Data.Default                 (def)
+=======
+import           Control.TimeWarp.Rpc         (Dialog, Transfer, commLoggerName,
+                                               runDialog, runTransfer, setForkStrategy)
+import           Control.TimeWarp.Timed       (currentTime,
+                                               runTimedIO, runTimedIO, sec)
+import           Mockable.Concurrent          (fork, killThread)
+
+import           Mockable.Production          (Production, runProduction)
+import           Mockable.Concurrent          (repeatForever)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 import           Data.List                    (nub)
 import qualified Data.Time                    as Time
 import           Formatting                   (build, sformat, shown, (%))
@@ -92,7 +103,7 @@ import           Pos.WorkMode                 (MinWorkMode, ProductionMode, RawR
 ----------------------------------------------------------------------------
 
 -- | Runs node as time-slave inside IO monad.
-runTimeSlaveReal :: KademliaDHTInstance -> BaseParams -> IO Timestamp
+runTimeSlaveReal :: KademliaDHTInstance -> BaseParams -> Production Timestamp
 runTimeSlaveReal inst bp = do
     mvar <- liftIO newEmptyMVar
     runServiceMode inst bp (listeners mvar) $
@@ -117,7 +128,7 @@ runTimeSlaveReal inst bp = do
          else []
 
 -- | Runs time-lord to acquire system start.
-runTimeLordReal :: LoggingParams -> IO Timestamp
+runTimeLordReal :: LoggingParams -> Production Timestamp
 runTimeLordReal lp@LoggingParams{..} = loggerBracket lp $ do
     t <- getCurTimestamp
     usingLoggerName lpRunnerTag (doLog t) $> t
@@ -126,7 +137,7 @@ runTimeLordReal lp@LoggingParams{..} = loggerBracket lp $ do
         realTime <- liftIO Time.getZonedTime
         logInfo (sformat ("[Time lord] System start: " %timestampF%", i. e.: "%shown) t realTime)
 
-runSupporterReal :: KademliaDHTInstance -> BaseParams -> IO ()
+runSupporterReal :: KademliaDHTInstance -> BaseParams -> Production ()
 runSupporterReal inst bp = runServiceMode inst bp [] $ do
     supporterKey <- currentNodeKey
     logInfo $ sformat ("Supporter key: " % build) supporterKey
@@ -146,7 +157,7 @@ runRawRealMode
     -> SscParams ssc
     -> [ListenerDHT (MutSocketState ssc) (RawRealMode ssc)]
     -> RawRealMode ssc c
-    -> IO c
+    -> Production c
 runRawRealMode inst np@NodeParams {..} sscnp listeners action =
     runResourceT $
     do putText $ "Running listeners number: " <> show (length listeners)
@@ -174,7 +185,7 @@ runProductionMode
     :: forall ssc a.
        SscConstraint ssc
     => KademliaDHTInstance -> NodeParams -> SscParams ssc ->
-       ProductionMode ssc a -> IO a
+       ProductionMode ssc a -> Production a
 runProductionMode inst np@NodeParams {..} sscnp =
     runRawRealMode inst np sscnp listeners . getNoStatsT
   where
@@ -188,7 +199,7 @@ runStatsMode
     :: forall ssc a.
        SscConstraint ssc
     => KademliaDHTInstance -> NodeParams -> SscParams ssc -> StatsMode ssc a
-    -> IO a
+    -> Production a
 runStatsMode inst np@NodeParams {..} sscnp action =
     runRawRealMode inst np sscnp listeners $ runStatsT $ do
     mapM_ fork statsWorkers
@@ -203,7 +214,7 @@ runServiceMode
     -> BaseParams
     -> [ListenerDHT () ServiceMode]
     -> ServiceMode a
-    -> IO a
+    -> Production a
 runServiceMode inst bp@BaseParams{..} listeners action = loggerBracket bpLoggingParams $ do
     runOurDialog pass (lpRunnerTag bpLoggingParams) . runKDHT inst bp listeners $
         nodeStartMsg bp >> action
@@ -216,7 +227,6 @@ runKDHT
     :: ( MonadBaseControl IO m
        , WithLogger m
        , MonadIO m
-       , MonadTimed m
        , MonadMask m
        , MonadDHTDialog socketState m)
     => KademliaDHTInstance
@@ -292,15 +302,15 @@ runOurDialogRaw cPool ssInitializer loggerName =
     usingLoggerName loggerName . runTransferRaw def cPool ssInitializer . runDialog BiP
 
 runOurDialog
-    :: IO socketState
+    :: Production socketState
     -> LoggerName
     -> Dialog DHTPacking (Transfer socketState) a
-    -> IO a
+    -> Production a
 runOurDialog ssInitializer loggerName =
-    runTimedIO .
+    -- runTimedIO .
     usingLoggerName loggerName . runTransfer ssInitializer . runDialog BiP
 
-runTimed :: LoggerName -> TimedMode a -> IO a
+runTimed :: LoggerName -> TimedMode a -> Production a
 runTimed loggerName = runTimedIO . usingLoggerName loggerName
 
 ----------------------------------------------------------------------------
@@ -314,7 +324,7 @@ nodeStartMsg BaseParams {..} = logInfo msg
 
 -- | Get current time as Timestamp. It is intended to be used when you
 -- launch the first node. It doesn't make sense in emulation mode.
-getCurTimestamp :: IO Timestamp
+getCurTimestamp :: Production Timestamp
 getCurTimestamp = Timestamp <$> runTimedIO currentTime
 
 setupLoggers :: MonadIO m => LoggingParams -> m ()
@@ -327,7 +337,7 @@ setupLoggers LoggingParams{..} = do
     dhtMapper  name | name == "dht"  = dhtLoggerName (Proxy :: Proxy (RawRealMode ssc))
                     | otherwise      = name
 
-loggerBracket :: LoggingParams -> IO a -> IO a
+loggerBracket :: LoggingParams -> Production a -> Production a
 loggerBracket lp = bracket_ (setupLoggers lp) releaseAllHandlers
 
 -- | RAII for node starter.
@@ -343,7 +353,7 @@ addDevListeners sysStart ls =
     else ls
 
 bracketDHTInstance
-    :: BaseParams -> (KademliaDHTInstance -> IO a) -> IO a
+    :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
 bracketDHTInstance BaseParams {..} = bracket acquire release
   where
     loggerName = lpRunnerTag bpLoggingParams

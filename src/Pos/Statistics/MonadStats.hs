@@ -27,7 +27,7 @@ import           Control.Monad.Trans.Control (ComposeSt, MonadBaseControl (..),
                                               defaultRestoreM, defaultRestoreT)
 import           Control.TimeWarp.Rpc        (MonadDialog, MonadResponse (..),
                                               MonadTransfer (..))
-import           Control.TimeWarp.Timed      (MonadTimed (..), ThreadId)
+import           Control.TimeWarp.Timed      (ThreadId)
 import qualified Data.Binary                 as Binary
 import           Data.Maybe                  (fromMaybe)
 import           Focus                       (Decision (Remove), alterM)
@@ -77,6 +77,7 @@ type instance ThreadId (StatsT m) = ThreadId m
 -- | Stats wrapper for collecting statistics without collecting it.
 newtype NoStatsT m a = NoStatsT
     { getNoStatsT :: m a  -- ^ action inside wrapper without collecting statistics
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
     } deriving (Functor, Applicative, Monad, MonadTimed, MonadThrow,
                 MonadCatch, MonadMask, MonadIO, MonadFail, HasLoggerName,
                 MonadDialog s p, MonadDHT, MonadMessageDHT s, MonadSlots,
@@ -84,6 +85,14 @@ newtype NoStatsT m a = NoStatsT
                 MonadUtxoRead, MonadUtxo, Modern.MonadDB ssc,
                 MonadTxpLD ssc, MonadSscGS ssc, MonadSscLD ssc,
                 WithNodeContext ssc)
+=======
+    } deriving (Functor, Applicative, Monad, MonadThrow, MonadCatch,
+               MonadMask, MonadIO, HasLoggerName, MonadDialog s p,
+               MonadDHT, MonadMessageDHT s, MonadSlots, WithDefaultMsgHeader,
+               MonadJL, CanLog, MonadUtxoRead, MonadUtxo, Modern.MonadDB ssc,
+               MonadTxpLD ssc, MonadSscGS ssc, MonadSscLD ssc,
+               WithNodeContext ssc)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance Monad m => WrappedM (NoStatsT m) where
     type UnwrappedM (NoStatsT m) = m
@@ -123,12 +132,20 @@ type StatsMap = SM.Map Text LByteString
 -- during execution of this action. Used in benchmarks.
 newtype StatsT m a = StatsT
     { getStatsT :: ReaderT StatsMap m a  -- ^ action inside wrapper with collected statistics
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
     } deriving (Functor, Applicative, Monad, MonadTimed, MonadThrow,
                 MonadCatch, MonadMask, MonadIO, MonadFail, HasLoggerName,
                 MonadDialog s p, MonadDHT, MonadMessageDHT s, MonadSlots,
                 WithDefaultMsgHeader, MonadTrans, MonadJL, CanLog,
                 MonadUtxoRead, MonadUtxo, Modern.MonadDB ssc, MonadTxpLD ssc,
                 MonadSscGS ssc, MonadSscLD ssc, WithNodeContext ssc)
+=======
+    } deriving (Functor, Applicative, Monad, MonadThrow, MonadCatch,
+               MonadMask, MonadIO, HasLoggerName, MonadDialog s p,
+               MonadDHT, MonadMessageDHT s, MonadSlots, WithDefaultMsgHeader, MonadTrans,
+               MonadJL, CanLog, MonadUtxoRead, MonadUtxo, Modern.MonadDB ssc, MonadTxpLD ssc,
+               MonadSscGS ssc, MonadSscLD ssc, WithNodeContext ssc)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance Monad m => WrappedM (StatsT m) where
     type UnwrappedM (StatsT m) = ReaderT StatsMap m

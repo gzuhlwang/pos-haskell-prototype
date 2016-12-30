@@ -26,6 +26,7 @@ import           Pos.Ssc.GodTossing   (GtParams (..), SscGodTossing)
 import           Pos.Ssc.NistBeacon   (SscNistBeacon)
 import           Pos.Ssc.SscAlgo      (SscAlgo (..))
 import           Pos.Types            (Timestamp)
+import           Mockable.Production  (Production, runProduction)
 #ifdef WITH_WEB
 import           Pos.Ssc.Class        (SscConstraint)
 import           Pos.Web              (serveWebBase, serveWebGT)
@@ -42,7 +43,7 @@ import           NodeOptions          (Args (..), getNodeOptions)
 
 getKey
     :: Bi key
-    => Maybe key -> Maybe FilePath -> FilePath -> IO key -> IO key
+    => Maybe key -> Maybe FilePath -> FilePath -> Production key -> Production key
 getKey (Just key) _ _ _ = return key
 getKey _ (Just path) _ _ = decode' path
 getKey _ _ fpath gen = do
@@ -53,12 +54,12 @@ getKey _ _ fpath gen = do
         putStrLn $ "Generated key " ++ ("cardano-keys" </> fpath)
         return key
 
-decode' :: Bi key => FilePath -> IO key
+decode' :: Bi key => FilePath -> Production key
 decode' fpath = either fail' return . decode =<< LBS.readFile fpath
   where
     fail' e = fail $ "Error reading key from " ++ fpath ++ ": " ++ e
 
-getSystemStart :: KademliaDHTInstance -> Args -> IO Timestamp
+getSystemStart :: KademliaDHTInstance -> Args -> Production Timestamp
 getSystemStart inst args =
     case runningMode of
         Development ->
@@ -89,7 +90,7 @@ baseParams loggingTag args@Args {..} =
         | supporterNode = maybe (Right DHTSupporter) Left dhtKey
         | otherwise = maybe (Right DHTFull) Left dhtKey
 
-checkDhtKey :: Bool -> Maybe DHTKey -> IO ()
+checkDhtKey :: Bool -> Maybe DHTKey -> Production ()
 checkDhtKey _ Nothing = pass
 checkDhtKey isSupporter (Just (dhtNodeType -> keyType))
     | keyType == Just expectedType = pass
@@ -103,7 +104,7 @@ checkDhtKey isSupporter (Just (dhtNodeType -> keyType))
         | isSupporter = DHTSupporter
         | otherwise = DHTFull
 
-action :: Args -> KademliaDHTInstance -> IO ()
+action :: Args -> KademliaDHTInstance -> Production ()
 action args@Args {..} inst = do
     checkDhtKey supporterNode dhtKey
     if supporterNode
@@ -204,4 +205,4 @@ walletStats _ = []
 main :: IO ()
 main = do
     args <- getNodeOptions
-    bracketDHTInstance (baseParams "node" args) (action args)
+    runProduction $ bracketDHTInstance (baseParams "node" args) (action args)

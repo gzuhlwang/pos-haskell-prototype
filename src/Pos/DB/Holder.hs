@@ -18,7 +18,7 @@ import           Control.Monad.Trans.Control  (ComposeSt, MonadBaseControl (..),
                                                defaultRestoreM, defaultRestoreT)
 import           Control.Monad.Trans.Resource (MonadResource)
 import           Control.TimeWarp.Rpc         (MonadDialog, MonadTransfer)
-import           Control.TimeWarp.Timed       (MonadTimed, ThreadId)
+import           Control.TimeWarp.Timed       (ThreadId)
 import           Serokell.Util.Lens           (WrappedM (..))
 import           System.Wlog                  (CanLog, HasLoggerName)
 import           Universum
@@ -28,9 +28,14 @@ import           Pos.DB.Types                 (DB (..), NodeDBs (..))
 
 newtype DBHolder ssc m a = DBHolder
     { getDBHolder :: ReaderT (NodeDBs ssc) m a
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
     } deriving (Functor, Applicative, Monad, MonadTrans, MonadTimed,
                 MonadThrow, MonadCatch, MonadMask, MonadIO, MonadFail,
                 HasLoggerName, CanLog, MonadDialog s p)
+=======
+    } deriving (Functor, Applicative, Monad, MonadTrans, MonadThrow,
+                MonadCatch, MonadMask, MonadIO, HasLoggerName, CanLog, MonadDialog s p)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance Monad m => WrappedM (DBHolder ssc m) where
     type UnwrappedM (DBHolder ssc m) = ReaderT (NodeDBs ssc) m

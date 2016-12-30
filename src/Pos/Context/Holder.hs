@@ -24,7 +24,7 @@ import           Control.Monad.Trans.Control (ComposeSt, MonadBaseControl (..),
                                               defaultRestoreM, defaultRestoreT)
 import           Control.TimeWarp.Rpc        (MonadDialog, MonadResponse (..),
                                               MonadTransfer (..))
-import           Control.TimeWarp.Timed      (MonadTimed (..), ThreadId)
+import           Control.TimeWarp.Timed      (ThreadId)
 
 import           Formatting                  (sformat, shown, (%))
 import           Serokell.Util.Lens          (WrappedM (..))
@@ -43,10 +43,16 @@ import           Pos.Util.JsonLog            (MonadJL (..), appendJL)
 -- | Wrapper for monadic action which brings 'NodeContext'.
 newtype ContextHolder ssc m a = ContextHolder
     { getContextHolder :: ReaderT (NodeContext ssc) m a
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
     } deriving (Functor, Applicative, Monad, MonadTrans, MonadTimed,
                 MonadThrow, MonadCatch, MonadMask, MonadIO, MonadFail,
                 HasLoggerName, CanLog, MonadDB ssc,
                 MonadTxpLD ssc, MonadDialog s p)
+=======
+    } deriving (Functor, Applicative, Monad, MonadTrans, MonadThrow,
+               MonadCatch, MonadMask, MonadIO, HasLoggerName, CanLog, MonadDB ssc,
+               MonadTxpLD ssc, MonadDialog s p)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 -- | Run 'ContextHolder' action.
 runContextHolder :: NodeContext ssc -> ContextHolder ssc m a -> m a
@@ -81,7 +87,7 @@ instance MonadResponse s m => MonadResponse s (ContextHolder ssc m) where
 instance Monad m => WithNodeContext ssc (ContextHolder ssc m) where
     getNodeContext = ContextHolder ask
 
-instance (MonadTimed m, Monad m) =>
+instance (Monad m) =>
          MonadSlots (ContextHolder ssc m) where
     getSystemStartTime = ContextHolder $ asks ncSystemStart
     getCurrentTime = Timestamp <$> currentTime

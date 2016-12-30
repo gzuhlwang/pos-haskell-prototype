@@ -23,7 +23,7 @@ import           Control.Monad.Trans.Control (ComposeSt, MonadBaseControl (..),
                                               defaultLiftBaseWith, defaultLiftWith,
                                               defaultRestoreM, defaultRestoreT)
 import           Control.TimeWarp.Rpc        (MonadDialog, MonadTransfer (..))
-import           Control.TimeWarp.Timed      (MonadTimed (..), ThreadId)
+import           Control.TimeWarp.Timed      (ThreadId)
 import           Serokell.Util.Lens          (WrappedM (..))
 import           System.Wlog                 (CanLog, HasLoggerName)
 import           Universum
@@ -102,8 +102,13 @@ deleteAt j ls = let (l, r) = splitAt j ls in l ++ drop 1 r
 
 newtype KeyStorage m a = KeyStorage
     { getKeyStorage :: ReaderT KeyData m a
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
     } deriving (Functor, Applicative, Monad, MonadTimed,
                 MonadThrow, MonadSlots, MonadCatch, MonadIO, MonadFail,
+=======
+    } deriving (Functor, Applicative, Monad, 
+                MonadThrow, MonadSlots, MonadCatch, MonadIO,
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
                 HasLoggerName, MonadDialog s p, CanLog, MonadMask, MonadDHT,
                 MonadMessageDHT s, MonadReader KeyData, WithDefaultMsgHeader,
                 MonadWalletDB, WithWalletContext, WithNodeContext ssc,

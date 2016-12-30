@@ -12,7 +12,8 @@ module Pos.Slotting
 
 import           Control.Monad.Catch      (MonadCatch, catch)
 import           Control.Monad.Except     (ExceptT)
-import           Control.TimeWarp.Timed   (Microsecond, MonadTimed, for, fork_, wait)
+import           Control.TimeWarp.Timed   (Microsecond, for, fork_)
+import           Mockable.Concurrent      (wait)
 import           Formatting               (build, sformat, shown, (%))
 import           Serokell.Util.Exceptions ()
 import           System.Wlog              (WithLogger, logError, logInfo,
@@ -72,7 +73,7 @@ getSlotStart (flattenSlotId -> slotId) =
 -- it.  This function uses MonadTimed and assumes consistency between
 -- MonadSlots and MonadTimed implementations.
 onNewSlot
-    :: (MonadIO m, MonadTimed m, MonadSlots m, MonadCatch m, WithLogger m)
+    :: (MonadIO m, MonadSlots m, MonadCatch m, WithLogger m)
     => Bool -> (SlotId -> m ()) -> m a
 onNewSlot startImmediately action =
     onNewSlotDo Nothing startImmediately actionWithCatch
@@ -83,7 +84,7 @@ onNewSlot startImmediately action =
     handler = logError . sformat ("Error occurred: "%build)
 
 onNewSlotDo
-    :: (MonadIO m, MonadTimed m, MonadSlots m, MonadCatch m, WithLogger m)
+    :: (MonadIO m, MonadSlots m, MonadCatch m, WithLogger m)
     => Maybe SlotId -> Bool -> (SlotId -> m ()) -> m a
 onNewSlotDo expectedSlotId startImmediately action = do
     -- here we wait for short intervals to be sure that expected slot

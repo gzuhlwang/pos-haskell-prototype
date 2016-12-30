@@ -11,8 +11,8 @@ module Pos.Ssc.GodTossing.Workers
 import           Control.Concurrent.STM           (readTVar)
 import           Control.Lens                     (use, view, (%=), _2, _3)
 import           Control.Monad.Trans.Maybe        (runMaybeT)
-import           Control.TimeWarp.Timed           (Microsecond, Millisecond, currentTime,
-                                                   for, wait)
+import           Control.TimeWarp.Timed           (Microsecond, Millisecond, currentTime, for)
+import           Mockable.Concurrent              (wait)
 import           Data.HashMap.Strict              (insert, lookup, member)
 import           Data.List.NonEmpty               (nonEmpty)
 import           Data.Tagged                      (Tagged (..))

@@ -31,7 +31,7 @@ import           Control.TimeWarp.Rpc         (Dialog, Message, MonadDialog,
                                                ResponseT, closeR, hoistRespCond,
                                                mapResponseT, peerAddr, replyH, sendH,
                                                userStateR)
-import           Control.TimeWarp.Timed       (MonadTimed, ThreadId)
+import           Control.TimeWarp.Timed       (ThreadId)
 import           Formatting                   (int, sformat, shown, (%))
 import qualified Formatting                   as F
 import           System.Wlog                  (CanLog, HasLoggerName, WithLogger,
@@ -119,8 +119,13 @@ newtype DHTResponseT s m a = DHTResponseT
     } deriving (Functor, Applicative, Monad, MonadIO, MonadTrans,
                 MonadThrow, MonadCatch, MonadMask, MonadFail,
                 MonadState ss, WithDefaultMsgHeader, CanLog,
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
                 HasLoggerName, MonadTimed, MonadDialog s p, MonadDHT,
                 MonadMessageDHT s)
+=======
+                HasLoggerName, MonadDialog s p, MonadDHT, MonadMessageDHT s
+                )
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance MonadTransfer s m => MonadTransfer s (DHTResponseT s m) where
     sendRaw addr p = DHTResponseT $ sendRaw addr (hoist getDHTResponseT p)

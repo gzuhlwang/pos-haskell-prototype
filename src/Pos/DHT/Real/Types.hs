@@ -18,7 +18,7 @@ import           Control.Monad.Morph       (hoist)
 import           Control.Monad.Trans.Class (MonadTrans)
 import           Control.TimeWarp.Rpc      (Binding (..), MonadDialog, MonadResponse (..),
                                             MonadTransfer (..), hoistRespCond)
-import           Control.TimeWarp.Timed    (MonadTimed, ThreadId)
+import           Control.TimeWarp.Timed    (ThreadId)
 
 import qualified Data.ByteString           as BS
 import           Data.ByteString.Lazy      (fromStrict, toStrict)
@@ -92,9 +92,14 @@ data KademliaDHTInstanceConfig = KademliaDHTInstanceConfig
 -- | Node of /Kademlia DHT/ algorithm with access to 'KademliaDHTContext'.
 newtype KademliaDHT m a = KademliaDHT
     { unKademliaDHT :: ReaderT (KademliaDHTContext m) m a
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
     } deriving (Functor, Applicative, Monad, MonadFail, MonadThrow,
                 MonadCatch, MonadIO, MonadMask, MonadTimed,
                 MonadDialog s p, CanLog, HasLoggerName)
+=======
+    } deriving (Functor, Applicative, Monad, MonadThrow, MonadCatch, MonadIO,
+                MonadMask, MonadDialog s p, CanLog, HasLoggerName)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance MonadResponse s m => MonadResponse s (KademliaDHT m) where
     replyRaw dat = KademliaDHT $ replyRaw (hoist unKademliaDHT dat)

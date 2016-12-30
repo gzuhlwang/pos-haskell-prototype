@@ -24,9 +24,10 @@ module Pos.WorkMode
 
 import           Control.Monad.Catch           (MonadMask)
 import           Control.TimeWarp.Rpc          (Dialog, Transfer)
-import           Control.TimeWarp.Timed        (MonadTimed (..), TimedIO)
+import           Control.TimeWarp.Timed        (TimedIO)
 import           System.Wlog                   (LoggerNameBox, WithLogger)
 import           Universum
+import           Mockable.Monad                (MonadMockable) 
 
 import           Pos.Communication.Types.State (MutSocketState)
 import           Pos.Context                   (ContextHolder, WithNodeContext)
@@ -52,8 +53,12 @@ type MSockSt ssc = MutSocketState ssc
 type WorkMode ssc m
     = ( WithLogger m
       , MonadIO m
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
       , MonadFail m
       , MonadTimed m
+=======
+      , MonadMockable m
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
       , MonadMask m
       , MonadSlots m
       , Modern.MonadDB ssc m
@@ -74,7 +79,7 @@ type WorkMode ssc m
 -- | More relaxed version of 'WorkMode'.
 type MinWorkMode ss m
     = ( WithLogger m
-      , MonadTimed m
+      , MonadMockable m
       , MonadMask m
       , MonadIO m
       , MonadFail m

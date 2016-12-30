@@ -23,7 +23,7 @@ import           Control.Monad.Trans.Control (ComposeSt, MonadBaseControl (..),
                                               defaultLiftBaseWith, defaultLiftWith,
                                               defaultRestoreM, defaultRestoreT)
 import           Control.TimeWarp.Rpc        (MonadDialog, MonadTransfer (..))
-import           Control.TimeWarp.Timed      (MonadTimed (..), ThreadId)
+import           Control.TimeWarp.Timed      (ThreadId)
 import           Data.Default                (Default (def))
 import           Serokell.Util.Lens          (WrappedM (..))
 import           System.Wlog                 (CanLog, HasLoggerName)
@@ -48,10 +48,16 @@ data SscState ssc =
 newtype SscHolder ssc m a =
     SscHolder
     { getSscHolder :: ReaderT (SscState ssc) m a
+<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
     } deriving (Functor, Applicative, Monad, MonadTrans, MonadTimed,
                 MonadThrow, MonadSlots, MonadCatch, MonadIO, MonadFail,
                 HasLoggerName, MonadDialog s p, WithNodeContext ssc,
                 MonadJL, CanLog, MonadMask, Modern.MonadDB ssc)
+=======
+    } deriving (Functor, Applicative, Monad, MonadTrans, MonadThrow, MonadSlots,
+                MonadCatch, MonadIO, HasLoggerName, MonadDialog s p, WithNodeContext ssc, MonadJL,
+                CanLog, MonadMask, Modern.MonadDB ssc)
+>>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance MonadTransfer s m => MonadTransfer s (SscHolder ssc m)
 type instance ThreadId (SscHolder ssc m) = ThreadId m

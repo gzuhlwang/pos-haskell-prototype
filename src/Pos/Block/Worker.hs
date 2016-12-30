@@ -11,7 +11,10 @@ module Pos.Block.Worker
        ) where
 
 import           Control.Lens               (ix, (^.), (^?))
-import           Control.TimeWarp.Timed     (for, wait)
+import           Control.TimeWarp.Timed     (for)
+import           Mockable.Concurrent        (wait)
+import           Mockable.Class             (Mockable)
+import           Mockable.Concurrent        (Delay)
 import           Data.Default               (def)
 import           Formatting                 (build, sformat, shown, (%))
 import           Serokell.Util              (VerificationRes (..), listJson)
@@ -91,6 +94,7 @@ blkOnNewSlot slotId@SlotId {..} = do
                | otherwise -> pure ()
 
 onNewSlotWhenLeader
+    -- :: (WorkMode ssc m, Mockable Delay m)
     :: WorkMode ssc m
     => SlotId
     -> Maybe (ProxySecretKey (EpochIndex, EpochIndex))

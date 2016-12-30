@@ -4,7 +4,8 @@ module Pos.Worker.Stats
        ( statsWorkers
        ) where
 
-import           Control.TimeWarp.Timed   (Microsecond, repeatForever, sec)
+import           Control.TimeWarp.Timed   (Microsecond, sec)
+import           Mockable.Concurrent      (repeatForever)
 import           Formatting               (build, sformat, (%))
 import           Serokell.Util.Exceptions ()
 import           System.Wlog              (logWarning)

@@ -13,7 +13,7 @@ module Pos.Communication.Server
 
 import           Control.TimeWarp.Rpc                (ForkStrategy (ForkStrategy),
                                                       MessageName)
-import           Control.TimeWarp.Timed              (MonadTimed, fork_)
+import           Control.TimeWarp.Timed              (fork_)
 import           Data.Tagged                         (untag)
 import           System.Wlog                         (LoggerName)
 import           Universum
@@ -29,6 +29,7 @@ import           Pos.DHT.Model                       (ListenerDHT, MonadDHTDialo
 import           Pos.Ssc.Class.Listeners             (SscListenersClass, sscListeners)
 import           Pos.Txp.Listeners                   (txListeners)
 import           Pos.WorkMode                        (WorkMode)
+import           Mockable.Monad                      (MonadMockable)
 
 -- | All listeners running on one node.
 allListeners
@@ -52,8 +53,7 @@ forkStrategy
 forkStrategy = ForkStrategy forkStrategyImpl
   where
     forkStrategyImpl
-        :: forall m.
-           (MonadTimed m)
+        :: forall m. (MonadMockable m)
         => MessageName -> m () -> m ()
     forkStrategyImpl = fromMaybe fork_ . (blkForkStrategy @ssc)
 
