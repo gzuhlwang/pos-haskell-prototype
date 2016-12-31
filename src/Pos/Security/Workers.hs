@@ -20,8 +20,7 @@ import           Pos.Communication.Methods         (sendToNeighborsSafe)
 import           Pos.Constants                     (k, mdNoBlocksSlotThreshold,
                                                     mdNoCommitmentsEpochThreshold)
 import           Pos.Context                       (getNodeContext, ncPublicKey)
-import           Pos.DB                            (getTipBlock, getTipBlockHeader,
-                                                    loadBlocksFromTipWhile)
+import           Pos.DB                            (getTipBlock, loadBlocksFromTipWhile)
 import           Pos.Slotting                      (onNewSlot)
 import           Pos.Ssc.Class.Types               (Ssc (..))
 import           Pos.Ssc.GodTossing.Types.Instance ()
@@ -51,7 +50,7 @@ reportAboutEclipsed :: WorkMode ssc m => m ()
 reportAboutEclipsed = logWarning "We're doomed, we're eclipsed!"
 
 requestNewHeaders :: WorkMode ssc m => m ()
-requestNewHeaders = sendToNeighborsSafe =<< mkHeadersRequest . Just . headerHash =<< getTipBlockHeader
+requestNewHeaders = sendToNeighborsSafe =<< mkHeadersRequest Nothing
 
 checkForReceivedBlocksWorker :: WorkMode ssc m => m ()
 checkForReceivedBlocksWorker = onNewSlot True $ \slotId -> do
