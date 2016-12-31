@@ -29,6 +29,8 @@ import           Pos.DHT.Model                  (getUserState, replyToNode)
 import           Pos.Types                      (HeaderHash, prevBlockL)
 import           Pos.WorkMode                   (WorkMode)
 
+-- TODO This method was moved from Pos.Block due to cyclic dependencies
+--      Move it back when it will be possible
 -- | Given a starting point hash (we take tip if it's not in storage)
 -- it returns not more than 'k' blocks distributed exponentially base
 -- 2 relatively to the depth in the blockchain.
