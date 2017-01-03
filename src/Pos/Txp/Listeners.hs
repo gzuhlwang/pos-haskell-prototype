@@ -22,7 +22,7 @@ import           Pos.Communication.Types     (MutSocketState, ResponseMode)
 import           Pos.Context                 (WithNodeContext (getNodeContext),
                                               ncPropagation)
 import           Pos.Crypto                  (hash)
-import           Pos.DHT.Model               (ListenerDHT (..), MonadDHTDialog,
+import           Pos.DHT.Model               (Listener (..), MonadDHTDialog,
                                               replyToNode)
 import           Pos.Statistics              (StatProcessTx (..), statlogCountEvent)
 import           Pos.Txp.Class               (MonadTxpLD, getMemPool)
@@ -33,17 +33,54 @@ import           Pos.Types                   (TxAux, TxId)
 import           Pos.Util.Relay              (DataMsg, InvMsg, Relay (..), ReqMsg,
                                               handleDataL, handleInvL, handleReqL)
 import           Pos.WorkMode                (WorkMode)
+import           Node
+import           Message.Message             (BinaryP (..))
 
 -- | Listeners for requests related to blocks processing.
 txListeners
     :: (MonadDHTDialog (MutSocketState ssc) m, WorkMode ssc m)
-    => [ListenerDHT (MutSocketState ssc) m]
+    => [Listener () BinaryP m]
 txListeners =
     [
-      ListenerDHT handleInvTx
-    , ListenerDHT handleReqTx
-    , ListenerDHT handleDataTx
+      Listener handleTxInv
+    , Listener handleTxReq
+    , Listener handleTxData
     ]
+
+
+
+
+{-
+handleTxInv :: (ResponseMode ssc m)
+            => ListenerAction () BinaryP m
+handleTxInv = ListenerActionConversation $
+    \_ (actions :: ConversationActions () (TxReqMsg ssc) TxInvMsg m) -> do
+        let ConversationActions _ _ (TxInvMsg (NE.toList -> txHashes)) _ = actions
+        added <- mapM handleSingle txHashes
+        let addedItems = map snd . filter fst . zip added $ txHashes
+        safeReply addedItems
+      where
+        safeReply = maybe pass (\r -> send actions () $ TxReqMsg r) . NE.nonEmpty
+        handleSingle txHash =
+            ifM (isTxUseful txHash)
+                (True <$ requestingLogMsg txHash)
+                (False <$ ingoringLogMsg txHash)
+        requestingLogMsg txHash = logDebug $
+            sformat ("Requesting tx with hash "%build) txHash
+        ingoringLogMsg txHash = logDebug $
+            sformat ("Ignoring tx with hash ("%build%"), because it's useless") txHash
+-}
+
+
+
+
+
+
+
+
+
+
+
 
 handleInvTx :: ResponseMode ssc m => InvMsg TxId TxMsgTag -> m ()
 handleInvTx = handleInvL
