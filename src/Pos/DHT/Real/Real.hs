@@ -177,6 +177,12 @@ startDHT KademliaDHTConfig {..} = do
             closer <- listenR binding
                               (convert <$> kdcListeners)
                               (convert' $ rawListener kdcEnableBroadcast msgCache kdcStopped)
+            -- old
+            -- data ListenerDHT s m = forall r . (Bi r, Message r) => ListenerDHT (r -> DHTResponseT s m ())
+            
+            -- new
+            -- data Listener header packing m = Listener MessageName (ListenerAction header packing m)
+            
             -- startNode
             --       NT.EndPoint m
             --    -> StdGen

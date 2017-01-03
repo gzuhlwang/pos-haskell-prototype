@@ -36,7 +36,7 @@ packages:
   extra-dep: true
 - location:
     git: /home/denis/tw-rework-sketch
-    commit: 88c67c9a721584b7c64b8e232d665fd534537d70
+    commit: 5ecdb79d7cf5556282fd3c936a2f25d3713f0817
   extra-dep: true  
 nix:
   shell-file: shell.nix
