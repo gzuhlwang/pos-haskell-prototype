@@ -42,9 +42,9 @@ txListeners
     => [Listener () BinaryP m]
 txListeners =
     [
-      Listener handleTxInv
-    , Listener handleTxReq
-    , Listener handleTxData
+      Listener (messageName (Proxy :: Proxy (TxInvMsg ssc)))  handleTxInv
+    , Listener (messageName (Proxy :: Proxy (TxReqMsg ssc)))  handleTxReq
+    , Listener (messageName (Proxy :: Proxy (TxDataMsg ssc))) handleTxData
     ]
 
 
@@ -70,17 +70,6 @@ handleTxInv = ListenerActionConversation $
         ingoringLogMsg txHash = logDebug $
             sformat ("Ignoring tx with hash ("%build%"), because it's useless") txHash
 -}
-
-
-
-
-
-
-
-
-
-
-
 
 handleInvTx :: ResponseMode ssc m => InvMsg TxId TxMsgTag -> m ()
 handleInvTx = handleInvL

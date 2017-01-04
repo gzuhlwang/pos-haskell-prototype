@@ -33,18 +33,18 @@ import           Pos.Crypto                (ProxySecretKey, checkProxySecretKey,
                                             pdDelegatePk, pdDelegatePk, proxySign,
                                             proxyVerify)
 import           Pos.DB.Misc               (addProxySecretKey, getProxySecretKeys)
-import           Pos.DHT.Model             (ListenerDHT (..), MonadDHTDialog, replyToNode)
+import           Pos.DHT.Model             (Listener (..), MonadDHTDialog, replyToNode)
 import           Pos.Types                 (EpochIndex, ProxySKEpoch, ProxySigEpoch)
 import           Pos.WorkMode              (WorkMode)
 
 -- | Listeners for requests related to delegation processing.
 delegationListeners
     :: (MonadDHTDialog (MutSocketState ssc) m, WorkMode ssc m)
-    => [ListenerDHT (MutSocketState ssc) m]
+    => [Listener () BinaryP m]
 delegationListeners =
-    [ ListenerDHT handleSendProxySK
-    , ListenerDHT handleConfirmProxySK
-    , ListenerDHT handleCheckProxySKConfirmed
+    [ Listener (messageName (Proxy :: Proxy (SendProxySK ssc))) handleSendProxySK
+    , Listener (messageName (Proxy :: Proxy (ConfirmProxySK ssc))) handleConfirmProxySK
+    , Listener (messageName (Proxy :: Proxy (CheckProxySKConfirmed ssc))) handleCheckProxySKConfirmed
     ]
 
 ----------------------------------------------------------------------------
@@ -82,19 +82,21 @@ processProxySecretKey pSk = withProxyCaches $ \p -> do
 handleSendProxySK
     :: forall ssc m.
        (ResponseMode ssc m)
-    => SendProxySK -> m ()
-handleSendProxySK (SendProxySK pSk) = do
-    logDebug $ sformat ("Got request to handle proxy secret key: "%build) pSk
-    invalidateProxyCaches -- do it in worker once in ~sometimes
-    verdict <- processProxySecretKey pSk
-    logResult verdict
-    propagateSendProxySK verdict pSk
-  where
-    logResult PSKAdded =
-        logInfo $ sformat ("Got valid related proxy secret key: "%build) pSk
-    logResult verdict =
-        logDebug $
-        sformat ("Got proxy signature that wasn't accepted. Reason: "%shown) verdict
+    => ListenerAction () BinaryP m
+handleSendProxySK = ListenerActionConversation $
+    \_ (actions :: ConversationActions () (_______ ssc) SendProxySK m) -> do
+        let ConversationActions _ _ (SendProxySK pSk) _ = actions
+        logDebug $ sformat ("Got request to handle proxy secret key: "%build) pSk
+        invalidateProxyCaches -- do it in worker once in ~sometimes
+        verdict <- processProxySecretKey pSk
+        logResult verdict
+        propagateSendProxySK verdict pSk
+      where
+        logResult PSKAdded =
+            logInfo $ sformat ("Got valid related proxy secret key: "%build) pSk
+        logResult verdict =
+            logDebug $
+            sformat ("Got proxy signature that wasn't accepted. Reason: "%shown) verdict
 
 -- | Propagates proxy secret key depending on the decision
 propagateSendProxySK
@@ -141,19 +143,24 @@ processConfirmProxySk pSk proof =
 handleConfirmProxySK
     :: forall ssc m.
        (ResponseMode ssc m)
-    => ConfirmProxySK -> m ()
-handleConfirmProxySK o@(ConfirmProxySK pSk proof) = do
-    logDebug $ sformat ("Got request to handle confirmation for psk: "%build) pSk
-    verdict <- processConfirmProxySk pSk proof
-    propagateConfirmProxySK verdict o
+    => ListenerAction () BinaryP m
+handleConfirmProxySK = ListenerActionConversation $
+    \_ (actions :: ConversationActions () (_______ ssc) ConfirmProxySK m) -> do
+        let ConversationActions _ _ (o@(ConfirmProxySK pSk proof)) _ = actions
+        logDebug $ sformat ("Got request to handle confirmation for psk: "%build) pSk
+        verdict <- processConfirmProxySk pSk proof
+        propagateConfirmProxySK verdict o
 
 propagateConfirmProxySK
     :: (WorkMode ssc m)
-    => ConfirmPSKVerdict -> ConfirmProxySK -> m ()
-propagateConfirmProxySK ConfirmPSKValid confPSK@(ConfirmProxySK pSk _) = do
+    => ConfirmPSKVerdict
+    -> ConfirmProxySK
+    -> ConversationActions () (_______ ssc) ConfirmProxySK m
+    -> m ()
+propagateConfirmProxySK ConfirmPSKValid confPSK@(ConfirmProxySK pSk _) actions = do
     whenM (ncPropagation <$> getNodeContext) $ do
         logDebug $ sformat ("Propagating psk confirmation for psk: "%build) pSk
-        sendProxyConfirmSK confPSK
+        sendProxyConfirmSK confPSK actions
 propagateConfirmProxySK _ _ = pure ()
 
 ----------------------------------------------------------------------------

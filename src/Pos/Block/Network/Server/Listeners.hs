@@ -50,10 +50,10 @@ blockListeners
     :: (MonadDHTDialog (MutSocketState ssc) m, WorkMode ssc m)
     => [Listener () BinaryP m]
 blockListeners =
-    [ Listener handleGetHeaders
-    , Listener handleGetBlocks
-    , Listener handleBlockHeaders
-    , Listener handleBlock
+    [ Listener (messageName (Proxy :: Proxy (MsgGetHeaders ssc))) handleGetHeaders
+    , Listener (messageName (Proxy :: Proxy (MsgGetBlocks ssc)))  handleGetBlocks
+    , Listener (messageName (Proxy :: Proxy (MsgHeaders ssc)))    handleBlockHeaders
+    , Listener (messageName (Proxy :: Proxy (MsgBlock ssc)))      handleBlock
     ]
 
 -- | Handles GetHeaders request which means client wants to get
