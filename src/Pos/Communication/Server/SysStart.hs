@@ -14,8 +14,7 @@ import           Universum
 
 import           Pos.Binary.Communication ()
 import           Pos.Communication.Types  (SysStartRequest (..), SysStartResponse (..))
-import           Pos.DHT.Model            (ListenerDHT (..), MonadDHTDialog,
-                                           closeResponse, replyToNode)
+import           Pos.DHT.Model            (ListenerDHT (..), MonadDHTDialog, replyToNode)
 import           Pos.Types                (Timestamp)
 import           Pos.WorkMode             (MinWorkMode)
 
@@ -29,7 +28,6 @@ sysStartReqListener
 sysStartReqListener sysStart = ListenerDHT $
     \(_ :: SysStartRequest) -> do
         replyToNode $ SysStartResponse sysStart Nothing
-        closeResponse
 
 -- | Listener for 'SysStartResponce' message.
 sysStartRespListener
@@ -38,4 +36,3 @@ sysStartRespListener
 sysStartRespListener mvar = ListenerDHT $
     \(SysStartResponse ts _ :: SysStartResponse) -> do
         liftIO . void . tryPutMVar mvar $ ts
-        closeResponse
