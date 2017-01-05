@@ -53,6 +53,7 @@ library
                         Pos.DHT.Model.Class
                         Pos.DHT.Model.Class.BiP
                         Pos.DHT.Model.Class.MonadDHT
+                        Pos.DHT.Model.Neighbors
                         Pos.DHT.Real
                         Pos.DHT.Real.Real
                         Pos.DHT.Real.Types

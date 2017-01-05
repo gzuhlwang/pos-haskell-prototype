@@ -49,8 +49,10 @@ onNewSlotWorkerImpl slotId = do
       whenM (ncTimeLord <$> getNodeContext) $ fork_ $ do
         let send = ncSystemStart <$> getNodeContext
                     >>= \sysStart -> do
-                        logInfo "Broadcasting system start"
-                        sendToNeighbors $ SysStartResponse sysStart (Just slotId) -- TODO: [CSL-494] Re-implement time broadcasting.
+                        logInfo "Sending to neighbors, system start"
+                        -- TODO: [CSL-494] Re-implement time broadcasting.
+                        let message = SysStartResponse sysStart (Just slotId)
+                        sendToNeighbors sendTo message
         send
         waitRandomInterval (ms 500) (slotDuration `div` 2)
         send
