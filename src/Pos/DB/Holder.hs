@@ -28,14 +28,8 @@ import           Pos.DB.Types                 (DB (..), NodeDBs (..))
 
 newtype DBHolder ssc m a = DBHolder
     { getDBHolder :: ReaderT (NodeDBs ssc) m a
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-    } deriving (Functor, Applicative, Monad, MonadTrans, MonadTimed,
-                MonadThrow, MonadCatch, MonadMask, MonadIO, MonadFail,
-                HasLoggerName, CanLog, MonadDialog s p)
-=======
     } deriving (Functor, Applicative, Monad, MonadTrans, MonadThrow,
-                MonadCatch, MonadMask, MonadIO, HasLoggerName, CanLog, MonadDialog s p)
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
+                MonadCatch, MonadMask, MonadIO, MonadFail, HasLoggerName, CanLog, MonadDialog s p)
 
 instance Monad m => WrappedM (DBHolder ssc m) where
     type UnwrappedM (DBHolder ssc m) = ReaderT (NodeDBs ssc) m

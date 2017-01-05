@@ -24,7 +24,7 @@ import           Pos.Binary.Types         ()
 import           Pos.Communication.Types  (ConfirmProxySK (..), SendProxySK (..))
 import           Pos.Context              (getNodeContext, ncAttackTypes)
 import           Pos.Crypto               (ProxySecretKey, hash)
-import           Pos.DHT.Model            (MonadMessageDHT, defaultSendToNeighbors,
+import           Pos.DHT.Model            (defaultSendToNeighbors,
                                            sendToNeighbors, sendToNode)
 import           Pos.Security             (AttackType (..), shouldIgnoreAddress)
 import           Pos.Types                (EpochIndex)

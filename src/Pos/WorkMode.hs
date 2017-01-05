@@ -33,7 +33,7 @@ import           Pos.Communication.Types.State (MutSocketState)
 import           Pos.Context                   (ContextHolder, WithNodeContext)
 import qualified Pos.DB.Class                  as Modern
 import qualified Pos.DB.Holder                 as Modern
-import           Pos.DHT.Model                 (DHTPacking, MonadMessageDHT (..),
+import           Pos.DHT.Model                 (DHTPacking,
                                                 WithDefaultMsgHeader)
 import           Pos.DHT.Real                  (KademliaDHT (..))
 import           Pos.Slotting                  (MonadSlots (..))
@@ -53,12 +53,8 @@ type MSockSt ssc = MutSocketState ssc
 type WorkMode ssc m
     = ( WithLogger m
       , MonadIO m
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
       , MonadFail m
-      , MonadTimed m
-=======
       , MonadMockable m
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
       , MonadMask m
       , MonadSlots m
       , Modern.MonadDB ssc m
@@ -70,7 +66,6 @@ type WorkMode ssc m
       , SscHelpersClass ssc
       , MonadSscLD ssc m
       , WithNodeContext ssc m
-      , MonadMessageDHT (MSockSt ssc) m
       , WithDefaultMsgHeader m
       , MonadStats m
       , MonadJL m
@@ -83,7 +78,6 @@ type MinWorkMode ss m
       , MonadMask m
       , MonadIO m
       , MonadFail m
-      , MonadMessageDHT ss m
       , WithDefaultMsgHeader m
       )
 

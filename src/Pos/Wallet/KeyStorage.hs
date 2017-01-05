@@ -32,7 +32,7 @@ import           Pos.Context                 (ContextHolder (..), NodeContext (.
                                               WithNodeContext (..))
 import           Pos.Crypto                  (SecretKey, keyGen)
 import qualified Pos.DB                      as Modern
-import           Pos.DHT.Model               (MonadDHT, MonadMessageDHT,
+import           Pos.DHT.Model               (MonadDHT, 
                                               WithDefaultMsgHeader)
 import           Pos.DHT.Real                (KademliaDHT)
 import           Pos.Slotting                (MonadSlots)
@@ -102,15 +102,10 @@ deleteAt j ls = let (l, r) = splitAt j ls in l ++ drop 1 r
 
 newtype KeyStorage m a = KeyStorage
     { getKeyStorage :: ReaderT KeyData m a
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-    } deriving (Functor, Applicative, Monad, MonadTimed,
-                MonadThrow, MonadSlots, MonadCatch, MonadIO, MonadFail,
-=======
     } deriving (Functor, Applicative, Monad, 
                 MonadThrow, MonadSlots, MonadCatch, MonadIO,
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
                 HasLoggerName, MonadDialog s p, CanLog, MonadMask, MonadDHT,
-                MonadMessageDHT s, MonadReader KeyData, WithDefaultMsgHeader,
+                MonadReader KeyData, WithDefaultMsgHeader,
                 MonadWalletDB, WithWalletContext, WithNodeContext ssc,
                 Modern.MonadDB ssc)
 

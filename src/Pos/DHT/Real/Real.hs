@@ -46,7 +46,7 @@ import           Pos.Constants                   (enchancedMessageBroadcast)
 import           Pos.DHT.Model.Class             (DHTException (..), DHTMsgHeader (..),
                                                   DHTPacking, DHTResponseT (..),
                                                   ListenerDHT (..), MonadDHT (..),
-                                                  MonadDHTDialog, MonadMessageDHT (..),
+                                                  MonadDHTDialog,
                                                   MonadResponseDHT (closeResponse),
                                                   defaultSendToNeighbors,
                                                   defaultSendToNode, withDhtLogger)
@@ -61,12 +61,10 @@ import           Pos.DHT.Real.Types              (DHTHandle, KademliaDHT (..),
 import           Pos.Util                        (runWithRandomIntervals,
                                                   waitAnyUnexceptional)
 
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
+import           Node                            (startNode)
+
 kademliaConfig :: K.KademliaConfig
 kademliaConfig = K.defaultConfig { K.k = 16 }
-=======
-import           Node                            (startNode)
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 -- | Run 'KademliaDHT' with provided 'KademliaDHTContext'
 runKademliaDHTRaw :: KademliaDHTContext m -> KademliaDHT m a -> m a
@@ -281,7 +279,7 @@ instance ( MonadDHTDialog s m
          , MonadBaseControl IO m
          , Bi DHTData
          , Bi DHTKey
-         ) => MonadMessageDHT s (KademliaDHT m) where
+         ) => ___ s (KademliaDHT m) where -- TODO: FIX IT!
     sendToNetwork = sendToNetworkImpl sendH
     sendToNeighbors = defaultSendToNeighbors seqConcurrentlyK sendToNode
     sendToNode addr msg = do

@@ -17,7 +17,7 @@ import           System.Wlog                (CanLog, HasLoggerName)
 
 import           Pos.Context                (WithNodeContext)
 import qualified Pos.DB                     as Modern
-import           Pos.DHT.Model              (MonadDHT, MonadMessageDHT,
+import           Pos.DHT.Model              (MonadDHT,
                                              WithDefaultMsgHeader)
 import           Pos.Slotting               (MonadSlots)
 import           Pos.Txp.Class              (MonadTxpLD)
@@ -32,21 +32,11 @@ import           Pos.Wallet.Web.State.State (MonadWalletWebDB (..), WalletState)
 -- | Holder for web wallet data
 newtype WalletWebDB m a = WalletWebDB
     { getWalletWebDB :: ReaderT WalletState m a
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-    } deriving (Functor, Applicative, Monad, MonadTimed, MonadThrow,
-                MonadCatch, MonadMask, MonadIO, MonadFail, HasLoggerName,
-                MonadWalletDB, WithWalletContext, MonadDialog s p,
-                MonadDHT, MonadMessageDHT s, MonadSlots,
-                WithDefaultMsgHeader, CanLog, MonadKeys, MonadBalances,
-                MonadTxHistory, WithNodeContext ssc,
-                Modern.MonadDB ssc, MonadTxpLD ssc)
-=======
     } deriving (Functor, Applicative, Monad, MonadThrow, MonadCatch,
                 MonadMask, MonadIO, HasLoggerName, MonadWalletDB, WithWalletContext,
-                MonadDialog s p, MonadDHT, MonadMessageDHT s, MonadSlots,
+                MonadDialog s p, MonadDHT, MonadSlots,
                 WithDefaultMsgHeader, CanLog, MonadKeys, MonadBalances, MonadTxHistory,
                 WithNodeContext ssc, Modern.MonadDB ssc)
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance Monad m => WrappedM (WalletWebDB m) where
     type UnwrappedM (WalletWebDB m) = ReaderT WalletState m

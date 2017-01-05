@@ -35,14 +35,8 @@ import           Pos.Wallet.Context.Context  (WalletContext (..))
 -- | Wrapper for monadic action which brings 'WalletContext'.
 newtype ContextHolder m a = ContextHolder
     { getContextHolder :: ReaderT WalletContext m a
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-    } deriving (Functor, Applicative, Monad, MonadTrans, MonadTimed,
-                MonadThrow, MonadCatch, MonadMask, MonadIO, MonadFail,
-                HasLoggerName, CanLog, MonadDialog s p)
-=======
     } deriving (Functor, Applicative, Monad, MonadTrans, MonadThrow,
                 MonadCatch, MonadMask, MonadIO, HasLoggerName, CanLog, MonadDialog s p)
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 -- | Run 'ContextHolder' action.
 runContextHolder :: WalletContext -> ContextHolder m a -> m a

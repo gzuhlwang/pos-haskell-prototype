@@ -47,14 +47,8 @@ import           Pos.Util.JsonLog            (MonadJL (..))
 
 newtype TxpLDHolder ssc m a = TxpLDHolder
     { getTxpLDHolder :: ReaderT (TxpLDWrap ssc) m a
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-    } deriving (Functor, Applicative, Monad, MonadTrans, MonadTimed,
-                MonadThrow, MonadSlots, MonadCatch, MonadIO, MonadFail,
-                HasLoggerName, MonadDialog s p, WithNodeContext ssc, MonadJL,
-=======
     } deriving (Functor, Applicative, Monad, MonadTrans, MonadThrow, MonadSlots,
-                MonadCatch, MonadIO, HasLoggerName, MonadDialog s p, WithNodeContext ssc, MonadJL,
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
+                MonadCatch, MonadIO, MonadFail, HasLoggerName, MonadDialog s p, WithNodeContext ssc, MonadJL,
                 MonadDB ssc, CanLog, MonadMask, MonadSscLD ssc, MonadSscGS ssc)
 
 instance MonadTransfer s m => MonadTransfer s (TxpLDHolder ssc m)

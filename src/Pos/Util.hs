@@ -1,4 +1,3 @@
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
@@ -6,17 +5,6 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-=======
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 -- | Miscellaneous unclassified utility functions.
 
@@ -87,22 +75,14 @@ module Pos.Util
 import           Control.Lens                  (Lens', LensLike', Magnified, Zoomed,
                                                 lensRules, magnify, zoom)
 import           Control.Lens.Internal.FieldTH (makeFieldOpticsForDec)
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-import qualified Control.Monad                 as Monad (fail)
-import           Control.TimeWarp.Rpc          (Dialog (..), Message (messageName),
-                                                MessageName, ResponseT (..),
-                                                Transfer (..))
-import           Control.TimeWarp.Timed        (Microsecond, MonadTimed (fork, wait),
-                                                Second, TimedIO, for, killThread)
-=======
 import           Control.Monad.Fail            (MonadFail, fail)
+import qualified Control.Monad                 as Monad (fail)
 import           Control.TimeWarp.Rpc          (Message (messageName), MessageName)
 import           Control.TimeWarp.Timed        (Microsecond,
                                                 Second, for)
 import           Mockable.Concurrent           (wait, fork, killThread)
 import           Mockable.Monad                (MonadMockable)
 
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 import qualified Data.Cache.LRU                as LRU
 import           Data.Hashable                 (Hashable)
 import qualified Data.HashMap.Strict           as HM

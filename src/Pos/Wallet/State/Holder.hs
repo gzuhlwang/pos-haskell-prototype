@@ -21,7 +21,7 @@ import           System.Wlog                 (CanLog, HasLoggerName)
 import           Universum
 
 import           Pos.Context                 (WithNodeContext)
-import           Pos.DHT.Model               (MonadDHT, MonadMessageDHT,
+import           Pos.DHT.Model               (MonadDHT, 
                                               WithDefaultMsgHeader)
 import           Pos.Slotting                (MonadSlots)
 import           Pos.Ssc.Extra.MonadLD       (MonadSscLD)
@@ -36,20 +36,11 @@ import           Pos.WorkMode                ()
 -- | Holder for web wallet data
 newtype WalletDB m a = WalletDB
     { getWalletDB :: ReaderT WalletState m a
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-    } deriving (Functor, Applicative, Monad, MonadTimed, MonadThrow,
-                MonadCatch, MonadMask, MonadIO, MonadFail, HasLoggerName,
-                WithNodeContext ssc, MonadDialog s p, MonadDHT,
-                MonadMessageDHT s, MonadSlots, MonadSscLD ssc,
-                WithDefaultMsgHeader, MonadJL, CanLog, MonadStats,
-                MonadKeys, WithWalletContext)
-=======
     } deriving (Functor, Applicative, Monad, MonadThrow, MonadCatch,
                 MonadMask, MonadIO, HasLoggerName, WithNodeContext ssc,
-                MonadDialog s p, MonadDHT, MonadMessageDHT s, MonadSlots, MonadSscLD ssc,
+                MonadDialog s p, MonadDHT, MonadSlots, MonadSscLD ssc,
                 WithDefaultMsgHeader, MonadJL, CanLog, MonadStats, MonadKeys,
                 WithWalletContext)
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 instance Monad m => WrappedM (WalletDB m) where
     type UnwrappedM (WalletDB m) = ReaderT WalletState m

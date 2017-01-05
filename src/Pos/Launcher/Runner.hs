@@ -34,15 +34,7 @@ import           Control.Lens                 (each, to, (%~), (^..), (^?), _hea
 import           Control.Monad.Catch          (bracket)
 import           Control.Monad.Trans.Control  (MonadBaseControl)
 import           Control.Monad.Trans.Resource (runResourceT)
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-import           Control.TimeWarp.Rpc         (ConnectionPool, Dialog, Transfer,
-                                               commLoggerName, runDialog, runTransfer,
-                                               runTransferRaw, setForkStrategy)
-import           Control.TimeWarp.Timed       (MonadTimed, currentTime, fork, killThread,
-                                               repeatForever, runTimedIO, runTimedIO, sec)
-
 import           Data.Default                 (def)
-=======
 import           Control.TimeWarp.Rpc         (Dialog, Transfer, commLoggerName,
                                                runDialog, runTransfer, setForkStrategy)
 import           Control.TimeWarp.Timed       (currentTime,
@@ -51,7 +43,6 @@ import           Mockable.Concurrent          (fork, killThread)
 
 import           Mockable.Production          (Production, runProduction)
 import           Mockable.Concurrent          (repeatForever)
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 import           Data.List                    (nub)
 import qualified Data.Time                    as Time
 import           Formatting                   (build, sformat, shown, (%))

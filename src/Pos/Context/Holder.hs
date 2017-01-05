@@ -43,16 +43,9 @@ import           Pos.Util.JsonLog            (MonadJL (..), appendJL)
 -- | Wrapper for monadic action which brings 'NodeContext'.
 newtype ContextHolder ssc m a = ContextHolder
     { getContextHolder :: ReaderT (NodeContext ssc) m a
-<<<<<<< a787abac640ae3b8d825001b069fecf6cc71c49b
-    } deriving (Functor, Applicative, Monad, MonadTrans, MonadTimed,
-                MonadThrow, MonadCatch, MonadMask, MonadIO, MonadFail,
-                HasLoggerName, CanLog, MonadDB ssc,
-                MonadTxpLD ssc, MonadDialog s p)
-=======
     } deriving (Functor, Applicative, Monad, MonadTrans, MonadThrow,
-               MonadCatch, MonadMask, MonadIO, HasLoggerName, CanLog, MonadDB ssc,
+               MonadCatch, MonadMask, MonadIO, MonadFail, HasLoggerName, CanLog, MonadDB ssc,
                MonadTxpLD ssc, MonadDialog s p)
->>>>>>> [CSL-447] switch to new tw-sketch, WIP!
 
 -- | Run 'ContextHolder' action.
 runContextHolder :: NodeContext ssc -> ContextHolder ssc m a -> m a
