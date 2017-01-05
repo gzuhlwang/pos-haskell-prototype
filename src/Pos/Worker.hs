@@ -15,7 +15,7 @@ import           Pos.Block.Worker       (blkWorkers)
 import           Pos.Communication      (SysStartResponse (..))
 import           Pos.Constants          (slotDuration, sysTimeBroadcastSlots)
 import           Pos.Context            (NodeContext (..), getNodeContext)
-import           Pos.DHT.Model          (sendToNetwork)
+import           Pos.DHT.Model          (sendToNeighbors)
 import           Pos.Security.Workers   (SecurityWorkersClass, securityWorkers)
 import           Pos.Slotting           (onNewSlot)
 import           Pos.Ssc.Class.Workers  (SscWorkersClass, sscWorkers)
@@ -50,7 +50,7 @@ onNewSlotWorkerImpl slotId = do
         let send = ncSystemStart <$> getNodeContext
                     >>= \sysStart -> do
                         logInfo "Broadcasting system start"
-                        sendToNetwork $ SysStartResponse sysStart (Just slotId)
+                        sendToNeighbors $ SysStartResponse sysStart (Just slotId) -- TODO: [CSL-494] Re-implement time broadcasting.
         send
         waitRandomInterval (ms 500) (slotDuration `div` 2)
         send
