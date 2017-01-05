@@ -82,30 +82,32 @@ processProxySecretKey pSk = withProxyCaches $ \p -> do
 handleSendProxySK
     :: forall ssc m.
        (ResponseMode ssc m)
-    => ListenerAction () BinaryP m
-handleSendProxySK = ListenerActionConversation $
-    \_ (actions :: ConversationActions () (_______ ssc) SendProxySK m) -> do
-        let ConversationActions _ _ (SendProxySK pSk) _ = actions
-        logDebug $ sformat ("Got request to handle proxy secret key: "%build) pSk
-        invalidateProxyCaches -- do it in worker once in ~sometimes
-        verdict <- processProxySecretKey pSk
-        logResult verdict
-        propagateSendProxySK verdict pSk
-      where
-        logResult PSKAdded =
-            logInfo $ sformat ("Got valid related proxy secret key: "%build) pSk
-        logResult verdict =
-            logDebug $
-            sformat ("Got proxy signature that wasn't accepted. Reason: "%shown) verdict
+    => ListenerAction BinaryP m
+handleSendProxySK = ListenerActionOneMsg $ \peerId sendActions (SendProxySK pSk) -> do
+    logDebug $ sformat ("Got request to handle proxy secret key: "%build) pSk
+    invalidateProxyCaches -- do it in worker once in ~sometimes
+    verdict <- processProxySecretKey pSk
+    logResult verdict
+    propagateSendProxySK verdict pSk peerId sendActions
+  where
+    logResult PSKAdded =
+        logInfo $ sformat ("Got valid related proxy secret key: "%build) pSk
+    logResult verdict =
+        logDebug $
+        sformat ("Got proxy signature that wasn't accepted. Reason: "%shown) verdict
 
 -- | Propagates proxy secret key depending on the decision
 propagateSendProxySK
     :: (WorkMode ssc m)
-    => PSKVerdict -> ProxySecretKey (EpochIndex, EpochIndex) -> m ()
-propagateSendProxySK PSKUnrelated pSk = do
+    => PSKVerdict
+    -> ProxySecretKey (EpochIndex, EpochIndex)
+    -> LL.NodeId
+    -> SendActions packing m
+    -> m ()
+propagateSendProxySK PSKUnrelated pSk peerId sendActions = do
     whenM (ncPropagation <$> getNodeContext) $ do
         logDebug $ sformat ("Propagating proxy secret key "%build) pSk
-        sendProxySecretKey pSk
+        sendProxySecretKey pSk peerId sendActions
 propagateSendProxySK PSKAdded pSk = do
     logDebug $ sformat ("Generating delivery proof and propagating it: "%build) pSk
     sk <- ncSecretKey <$> getNodeContext
@@ -143,24 +145,23 @@ processConfirmProxySk pSk proof =
 handleConfirmProxySK
     :: forall ssc m.
        (ResponseMode ssc m)
-    => ListenerAction () BinaryP m
-handleConfirmProxySK = ListenerActionConversation $
-    \_ (actions :: ConversationActions () (_______ ssc) ConfirmProxySK m) -> do
-        let ConversationActions _ _ (o@(ConfirmProxySK pSk proof)) _ = actions
-        logDebug $ sformat ("Got request to handle confirmation for psk: "%build) pSk
-        verdict <- processConfirmProxySk pSk proof
-        propagateConfirmProxySK verdict o
+    => ListenerAction BinaryP m
+handleConfirmProxySK = ListenerActionOneMsg $ \peerId sendActions (o@(ConfirmProxySK pSk proof)) -> do
+    logDebug $ sformat ("Got request to handle confirmation for psk: "%build) pSk
+    verdict <- processConfirmProxySk pSk proof
+    propagateConfirmProxySK verdict o peerId sendActions
 
 propagateConfirmProxySK
     :: (WorkMode ssc m)
     => ConfirmPSKVerdict
     -> ConfirmProxySK
-    -> ConversationActions () (_______ ssc) ConfirmProxySK m
+    -> LL.NodeId
+    -> SendActions packing m
     -> m ()
-propagateConfirmProxySK ConfirmPSKValid confPSK@(ConfirmProxySK pSk _) actions = do
+propagateConfirmProxySK ConfirmPSKValid confPSK@(ConfirmProxySK pSk _) peerId sendActions = do
     whenM (ncPropagation <$> getNodeContext) $ do
         logDebug $ sformat ("Propagating psk confirmation for psk: "%build) pSk
-        sendProxyConfirmSK confPSK actions
+        sendProxyConfirmSK confPSK peerId sendActions
 propagateConfirmProxySK _ _ = pure ()
 
 ----------------------------------------------------------------------------
@@ -170,10 +171,10 @@ propagateConfirmProxySK _ _ = pure ()
 handleCheckProxySKConfirmed
     :: forall ssc m.
        (ResponseMode ssc m)
-    => CheckProxySKConfirmed -> m ()
-handleCheckProxySKConfirmed (CheckProxySKConfirmed pSk) = do
+    => ListenerAction BinaryP m
+handleCheckProxySKConfirmed = ListenerActionOneMsg $ \peerId sendActions (CheckProxySKConfirmed pSk) -> do
     logDebug $ sformat ("Got request to check if psk: "%build%" was delivered.") pSk
     res <- withProxyCaches $ \p -> pure (p ^. ncProxyConfCache . to (HM.member pSk), p)
-    replyToNode $ CheckProxySKConfirmedRes res
+    sendTo sendActions peerId (messageName (Proxy :: Proxy (CheckProxySKConfirmedRes ssc))) $ CheckProxySKConfirmedRes res
 
 -- response listener should be defined ad-hoc where it's used

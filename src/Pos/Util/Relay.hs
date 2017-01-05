@@ -143,8 +143,11 @@ filterSecond predicate = map fst . filter (predicate . snd)
 -- 'ReqMsg' to them.
 handleInvL
     :: (Bi (ReqMsg key tag), Relay m tag key contents, ResponseMode ssc m)
-    => InvMsg key tag -> m ()
-handleInvL InvMsg {..} = processMessage "Inventory" imTag verifyInvTag $ do
+    => LL.NodeId
+    -> SendActions packing m
+    -> InvMsg key tag
+    -> m ()
+handleInvL peerId sendActions InvMsg {..} = processMessage "Inventory" imTag verifyInvTag $ do
     res <- zip (toList imKeys) <$> mapM (handleInv imTag) (toList imKeys)
     let useful = filterSecond identity res
         useless = filterSecond not res
@@ -154,14 +157,17 @@ handleInvL InvMsg {..} = processMessage "Inventory" imTag verifyInvTag $ do
           imTag useless
     case useful of
       []     -> pure ()
-      (a:as) -> replyToNode $ ReqMsg imTag (a :| as)
+      (a:as) -> sendTo sendActions peerId (messageName (Proxy :: Proxy (ReqMsg ssc))) $ ReqMsg imTag (a :| as)
 
 -- | Handler for request messages. Verifies tag ('verifyReqTag'),
 -- requests needed data.
 handleReqL
     :: (Bi (DataMsg key contents), Relay m tag key contents, ResponseMode ssc m)
-    => ReqMsg key tag -> m ()
-handleReqL ReqMsg {..} = processMessage "Request" rmTag verifyReqTag $ do
+    => LL.NodeId
+    -> SendActions packing m
+    -> ReqMsg key tag
+    -> m ()
+handleReqL peerId sendActions ReqMsg {..} = processMessage "Request" rmTag verifyReqTag $ do
     res <- zip (toList rmKeys) <$> mapM (handleReq rmTag) (toList rmKeys)
     let noDataAddrs = filterSecond isNothing res
         datas = catMaybes $ map (\(addr, m) -> (,addr) <$> m) res
@@ -169,14 +175,17 @@ handleReqL ReqMsg {..} = processMessage "Request" rmTag verifyReqTag $ do
         logDebug $ sformat
             ("No data "%build%" for addresses "%listJson)
             rmTag noDataAddrs
-    mapM_ (replyToNode . uncurry DataMsg) datas
+    mapM_ (sendTo sendActions peerId (messageName (Proxy :: Proxy (DataMsg))) $ uncurry DataMsg) datas
 
 -- | Handler for data messages. `handleData` is applied, and
 -- propagated if return value is 'True'.
 handleDataL
     :: (Bi (InvMsg key tag), Relay m tag key contents, WorkMode ssc m)
-    => DataMsg key contents -> m ()
-handleDataL DataMsg {..} =
+    => LL.NodeId
+    -> SendActions packing m
+    -> DataMsg key contents
+    -> m ()
+handleDataL peerId sendActions DataMsg {..} =
     processMessage "Data" dmContents verifyDataContents $
     ifM (handleData dmContents dmKey)
         handleDataLDo $
@@ -195,4 +204,4 @@ handleDataL DataMsg {..} =
             ("Adopted data "%build%" for address "%build%", propagating...")
             dmContents dmKey
         tag <- contentsToTag dmContents
-        sendToNeighborsSafe $ InvMsg tag (dmKey :| [])
+        sendToNeighborsSafe peerId sendActions $ InvMsg tag (dmKey :| [])

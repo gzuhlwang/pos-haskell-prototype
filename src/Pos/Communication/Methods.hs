@@ -32,24 +32,35 @@ import           Pos.Util                 (logWarningWaitLinear, messageName')
 import           Pos.WorkMode             (MinWorkMode, WorkMode)
 
 -- thread and controls how much time action takes.
-sendToNeighborsSafeImpl :: (Message r, MinWorkMode ssc m) => (r -> m ()) -> r -> m ()
+sendToNeighborsSafeImpl
+    :: (Message r, MinWorkMode ssc m)
+    => (r -> m ())
+    -> r
+    -> m ()
 sendToNeighborsSafeImpl sender msg = do
     let msgName = messageName' msg
     let action = () <$ sender msg
     fork_ $
         logWarningWaitLinear 10 ("Sending " <> msgName <> " to neighbors") action
 
-sendToNeighborsSafe :: forall r m ssc . (Bi r, Message r, MinWorkMode ssc m) => r -> m ()
-sendToNeighborsSafe msg = do
+sendToNeighborsSafe 
+    :: forall r m ssc.
+       (Bi r, Message r, MinWorkMode ssc m)
+    => LL.NodeId
+    -> SendActions packing m
+    -> r
+    -> m ()
+sendToNeighborsSafe peerId sendActions msg = do
     let action :: forall r0 . (Bi r0, Message r0) => r0 -> m ()
-        action = void . sendToNeighbors
+        action = void . sendToNeighbors peerId sendActions
     --sendToNeighborsSafeImpl action VersionReq
     sendToNeighborsSafeImpl action msg
 
 sendToNeighborsSafeWithMaliciousEmulation
     :: forall r m ssc.
        (Bi r, Message r, WorkMode ssc m)
-    => r -> m ()
+    => r
+    -> m ()
 sendToNeighborsSafeWithMaliciousEmulation msg = do
     cont <- getNodeContext
     -- [CSL-336] Make this parallel
@@ -67,13 +78,21 @@ sendToNeighborsSafeWithMaliciousEmulation msg = do
 -- | Sends proxy secret key to neighbours
 sendProxySecretKey
     :: (MinWorkMode ss m)
-    => ProxySecretKey (EpochIndex, EpochIndex) -> m ()
-sendProxySecretKey psk = do
+    => LL.NodeId
+    -> SendActions packing m
+    -> ProxySecretKey (EpochIndex, EpochIndex)
+    -> m ()
+sendProxySecretKey peerId sendActions psk = do
     logDebug $ sformat ("Sending proxySecretKey to neigbours:\n"%build) psk
-    sendToNeighborsSafe $ SendProxySK psk
+    sendToNeighborsSafe peerId sendActions $ SendProxySK psk
 
-sendProxyConfirmSK :: (MinWorkMode ss m) => ConfirmProxySK -> m ()
-sendProxyConfirmSK confirmPSK@(ConfirmProxySK psk _) = do
+sendProxyConfirmSK
+    :: (MinWorkMode ss m)
+    => LL.NodeId
+    -> SendActions packing m
+    -> ConfirmProxySK    
+    -> m ()
+sendProxyConfirmSK peerId sendActions confirmPSK@(ConfirmProxySK psk _) = do
     logDebug $
         sformat ("Sending proxy receival confirmation for psk "%build%" to neigbours") psk
-    sendToNeighborsSafe confirmPSK
+    sendToNeighborsSafe peerId sendActions confirmPSK

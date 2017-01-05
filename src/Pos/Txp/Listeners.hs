@@ -39,7 +39,7 @@ import           Message.Message             (BinaryP (..))
 -- | Listeners for requests related to blocks processing.
 txListeners
     :: (MonadDHTDialog (MutSocketState ssc) m, WorkMode ssc m)
-    => [Listener () BinaryP m]
+    => [Listener BinaryP m]
 txListeners =
     [
       Listener (messageName (Proxy :: Proxy (TxInvMsg ssc)))  handleTxInv
@@ -47,38 +47,14 @@ txListeners =
     , Listener (messageName (Proxy :: Proxy (TxDataMsg ssc))) handleTxData
     ]
 
+handleInvTx :: ResponseMode ssc m => ListenerAction BinaryP m
+handleInvTx = ListenerActionOneMsg $ \peerId sendActions h -> handleInvL peerId sendActions h -- InvMsg TxId TxMsgTag
 
+handleReqTx :: ResponseMode ssc m => ListenerAction BinaryP m
+handleReqTx = ListenerActionOneMsg $ \peerId sendActions h -> handleReqL peerId sendActions h -- ReqMsg TxId TxMsgTag
 
-
-{-
-handleTxInv :: (ResponseMode ssc m)
-            => ListenerAction () BinaryP m
-handleTxInv = ListenerActionConversation $
-    \_ (actions :: ConversationActions () (TxReqMsg ssc) TxInvMsg m) -> do
-        let ConversationActions _ _ (TxInvMsg (NE.toList -> txHashes)) _ = actions
-        added <- mapM handleSingle txHashes
-        let addedItems = map snd . filter fst . zip added $ txHashes
-        safeReply addedItems
-      where
-        safeReply = maybe pass (\r -> send actions () $ TxReqMsg r) . NE.nonEmpty
-        handleSingle txHash =
-            ifM (isTxUseful txHash)
-                (True <$ requestingLogMsg txHash)
-                (False <$ ingoringLogMsg txHash)
-        requestingLogMsg txHash = logDebug $
-            sformat ("Requesting tx with hash "%build) txHash
-        ingoringLogMsg txHash = logDebug $
-            sformat ("Ignoring tx with hash ("%build%"), because it's useless") txHash
--}
-
-handleInvTx :: ResponseMode ssc m => InvMsg TxId TxMsgTag -> m ()
-handleInvTx = handleInvL
-
-handleReqTx :: ResponseMode ssc m => ReqMsg TxId TxMsgTag -> m ()
-handleReqTx = handleReqL
-
-handleDataTx :: ResponseMode ssc m => DataMsg TxId TxMsgContents -> m ()
-handleDataTx = handleDataL
+handleDataTx :: ResponseMode ssc m => ListenerAction BinaryP m DataMsg TxId TxMsgContents -> m ()
+handleDataTx = ListenerActionOneMsg $ \peerId sendActions h -> handleDataL peerId sendActions h -- DataMsg TxId TxMsgContents
 
 instance ( WorkMode ssc m
          ) => Relay m TxMsgTag TxId TxMsgContents where

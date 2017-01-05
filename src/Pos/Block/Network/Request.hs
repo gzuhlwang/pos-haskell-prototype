@@ -37,13 +37,14 @@ mkHeadersRequest upto = do
 replyWithHeadersRequest
     :: forall ssc m . ResponseMode ssc m
     => Maybe (HeaderHash ssc)
-    -> ConversationActions () (MsgGetHeaders ssc) (MsgHeaders ssc) m
+    -> LL.NodeId
+    -> SendActions packing m
     -> m ()
-replyWithHeadersRequest upto = do
+replyWithHeadersRequest upto peerId sendActions = do
     logDebug "replyWithHeadersRequest: preparing request to be sent"
     msg <- mkHeadersRequest upto
     recordHeadersRequest msg =<< getUserState
-    send actions () msg
+    sendTo sendActions peerId (messageName msg) msg
     logDebug "replyWithHeadersRequest: data sent"
 
 -- | Make message which requests chain of blocks which is based on our
@@ -62,15 +63,16 @@ replyWithBlocksRequest
     :: forall ssc m . ResponseMode ssc m
     => HeaderHash ssc
     -> HeaderHash ssc
-    -> ConversationActions () (MsgGetBlocks ssc) (MsgHeaders ssc) m
+    -> LL.NodeId
+    -> SendActions packing m
     -> m ()
-replyWithBlocksRequest lcaChild wantedBlock actions = do
+replyWithBlocksRequest lcaChild wantedBlock peerId sendActions = do
     logDebug $
         sformat ("replyWithBlocksRequest: asking from (lca child) "%build%" to (new tip) "%build)
                 lcaChild wantedBlock
     recordBlocksRequest lcaChild wantedBlock =<< getUserState
     logDebug "replyWithBlocksRequest: replying to node"
-    send actions () msg
+    sendTo sendActions peerId (messageName msg) msg
     logDebug "replyWithBlocksRequest: replied"
   where
     msg = mkBlocksRequest lcaChild wantedBlock

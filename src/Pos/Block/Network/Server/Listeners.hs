@@ -62,37 +62,33 @@ blockListeners =
 handleGetHeaders
     :: forall ssc m.
        (ResponseMode ssc m)
-    => ListenerAction () BinaryP m
-handleGetHeaders = ListenerActionConversation $
-    \_ (actions :: ConversationActions () (MsgHeaders ssc) (MsgGetHeaders ssc) m) -> do
-        logDebug "Got request on handleGetHeaders"
-        let ConversationActions _ _ (MsgGetHeaders {..}) _ = actions
-        rhResult <- retrieveHeadersFromTo mghFrom mghTo
-        case nonEmpty rhResult of
-            Nothing ->
-                logWarning $
-                "handleGetHeaders@retrieveHeadersFromTo returned empty " <>
-                "list, not responding to node"
-            Just ne -> send actions () $ MsgHeaders ne
+    => ListenerAction BinaryP m
+handleGetHeaders = ListenerActionOneMsg $ \peerId sendActions (MsgGetHeaders {..}) -> do
+    logDebug "Got request on handleGetHeaders"
+    rhResult <- retrieveHeadersFromTo mghFrom mghTo
+    case nonEmpty rhResult of
+        Nothing ->
+            logWarning $
+            "handleGetHeaders@retrieveHeadersFromTo returned empty " <>
+            "list, not responding to node"
+            Just ne -> sendTo sendActions peerId (messageName (Proxy :: Proxy (MsgHeaders ssc))) $ MsgHeaders ne
 
 handleGetBlocks
     :: forall ssc m.
        (ResponseMode ssc m)
-    => ListenerAction () BinaryP m
-handleGetBlocks = ListenerActionConversation $
-    \_ (actions :: ConversationActions () (MsgBlock ssc) (MsgGetBlocks ssc) m) -> do
-        let ConversationActions _ _ (MsgGetBlocks {..}) _ = actions
-        logDebug "Got request on handleGetBlocks"
-        blocks <- getBlocksByHeaders mgbFrom mgbTo
-        maybe warn sendMsg blocks
-      where
-        warn = logWarning $ "getBLocksByHeaders@retrieveHeaders returned Nothing"
-        sendMsg blocksToSend = do
-            logDebug $ sformat
-                ("handleGetBlocks: started sending blocks one-by-one: "%listJson)
-                (map headerHash blocksToSend)
-            forM_ blocksToSend $ \b -> send actions () $ MsgBlock b
-            logDebug "handleGetBlocks: blocks sending done"
+    => ListenerAction BinaryP m
+handleGetBlocks = ListenerActionOneMsg $ \peerId sendActions (MsgGetBlocks {..}) -> do
+    logDebug "Got request on handleGetBlocks"
+    blocks <- getBlocksByHeaders mgbFrom mgbTo
+    maybe warn sendMsg blocks
+  where
+    warn = logWarning $ "getBLocksByHeaders@retrieveHeaders returned Nothing"
+    sendMsg blocksToSend = do
+        logDebug $ sformat
+            ("handleGetBlocks: started sending blocks one-by-one: "%listJson)
+            (map headerHash blocksToSend)
+        forM_ blocksToSend $ \b -> sendTo sendActions peerId (messageName (Proxy :: Proxy (MsgBlock ssc))) $ MsgBlock b
+        logDebug "handleGetBlocks: blocks sending done"
 
 -- | Handles MsgHeaders request. There are two usecases:
 --
@@ -101,23 +97,22 @@ handleGetBlocks = ListenerActionConversation $
 handleBlockHeaders
     :: forall ssc m.
        (ResponseMode ssc m)
-    => ListenerAction () BinaryP m
-handleBlockHeaders = ListenerActionConversation $
-    \_ (actions :: ConversationActions () (MsgGetBlocks ssc) (MsgHeaders ssc) m) -> do
-        let ConversationActions _ _ (MsgHeaders headers) _ = actions
-        logDebug "handleBlockHeaders: got some block headers"
-        ifM (matchRequestedHeaders headers =<< getUserState)
-            (handleRequestedHeaders headers actions)
-            (handleUnsolicitedHeaders headers actions)
+    => ListenerAction BinaryP m
+handleBlockHeaders = ListenerActionOneMsg $ \peerId sendActions (MsgHeaders headers) -> do
+    logDebug "handleBlockHeaders: got some block headers"
+    ifM (matchRequestedHeaders headers =<< getUserState)
+        (handleRequestedHeaders headers peerId sendActions)
+        (handleUnsolicitedHeaders headers peerId sendActions)
 
 -- First case of 'handleBlockheaders'
 handleRequestedHeaders
     :: forall ssc m.
-       (ResponseMode ssc m, Generic g)
+       (ResponseMode ssc m)
     => NonEmpty (BlockHeader ssc)
-    -> ConversationActions () (g ssc) (MsgHeaders ssc) m
+    -> LL.NodeId
+    -> SendActions packing m
     -> m ()
-handleRequestedHeaders headers actions = do
+handleRequestedHeaders headers peerId sendActions = do
     logDebug "handleRequestedHeaders: headers were requested, will process"
     classificationRes <- classifyHeaders headers
     let newestHeader = headers ^. _neHead
@@ -127,7 +122,7 @@ handleRequestedHeaders headers actions = do
         CHsValid lcaChild -> do
             let lcaChildHash = hash lcaChild
             logDebug $ sformat validFormat lcaChildHash newestHash
-            replyWithBlocksRequest lcaChildHash newestHash actions
+            replyWithBlocksRequest lcaChildHash newestHash peerId sendActions
         CHsUseless reason ->
             logDebug $ sformat uselessFormat oldestHash newestHash reason
         CHsInvalid _ -> pass -- TODO: ban node for sending invalid block.
@@ -141,33 +136,35 @@ handleRequestedHeaders headers actions = do
 -- Second case of 'handleBlockheaders'
 handleUnsolicitedHeaders
     :: forall ssc m.
-       (ResponseMode ssc m, Generic g)
+       (ResponseMode ssc m)
     => NonEmpty (BlockHeader ssc)
-    -> ConversationActions () (g ssc) (MsgHeaders ssc) m
+    -> LL.NodeId
+    -> SendActions packing m
     -> m ()
-handleUnsolicitedHeaders (header :| []) actions = handleUnsolicitedHeader header actions
+handleUnsolicitedHeaders (header :| []) peerId sendActions = handleUnsolicitedHeader header peerId sendActions
 -- TODO: ban node for sending more than one unsolicited header.
-handleUnsolicitedHeaders (h:|hs)        = do
+handleUnsolicitedHeaders (h:|hs) = do
     logWarning "Someone sent us nonzero amount of headers we didn't expect"
     logWarning $ sformat ("Here they are: "%listJson) (h:hs)
 
 handleUnsolicitedHeader
     :: forall ssc m.
-       (ResponseMode ssc m, Generic g)
+       (ResponseMode ssc m)
     => BlockHeader ssc
-    -> ConversationActions () (g ssc) (MsgHeaders ssc) m
+    -> LL.NodeId
+    -> SendActions packing m
     -> m ()
-handleUnsolicitedHeader header actions = do
+handleUnsolicitedHeader header peerId sendActions = do
     logDebug "handleUnsolicitedHeader: single header was propagated, processing"
     classificationRes <- classifyNewHeader header
     -- TODO: should we set 'To' hash to hash of header or leave it unlimited?
     case classificationRes of
         CHContinues -> do
             logDebug $ sformat continuesFormat hHash
-            replyWithBlocksRequest hHash hHash actions -- exactly one block in the range
+            replyWithBlocksRequest hHash hHash peerId sendActions -- exactly one block in the range
         CHAlternative -> do
             logInfo $ sformat alternativeFormat hHash
-            replyWithHeadersRequest (Just hHash) actions
+            replyWithHeadersRequest (Just hHash) peerId sendActions
         CHUseless reason -> logDebug $ sformat uselessFormat hHash reason
         CHInvalid _ -> pass -- TODO: ban node for sending invalid block.
   where
@@ -189,24 +186,23 @@ handleUnsolicitedHeader header actions = do
 handleBlock
     :: forall ssc m.
        (ResponseMode ssc m)
-    => ListenerAction () BinaryP m
-handleBlock = ListenerActionOneMsg $
-    \_ (SendActions () BinaryP m) (msg@(MsgBlock blk)) -> do
-        logDebug $ sformat ("handleBlock: got block "%build) (headerHash blk)
-        pbmr <- processBlockMsg msg =<< getUserState
-        case pbmr of
-            -- [CSL-335] Process intermediate blocks ASAP.
-            PBMintermediate -> do
-                logDebug $ sformat intermediateFormat (headerHash blk)
-                logDebug "handleBlock: it was an intermediate one"
-            PBMfinal blocks -> do
-                logDebug "handleBlock: it was final block, launching handleBlocks"
-                handleBlocks blocks
-            PBMunsolicited ->
-                -- TODO: ban node for sending unsolicited block.
-                logDebug "handleBlock: got unsolicited"
-      where
-        intermediateFormat = "Received intermediate block " %shortHashF
+    => ListenerAction BinaryP m
+handleBlock = ListenerActionOneMsg $ \peerId sendActions (msg@(MsgBlock blk)) -> do
+    logDebug $ sformat ("handleBlock: got block "%build) (headerHash blk)
+    pbmr <- processBlockMsg msg =<< getUserState
+    case pbmr of
+        -- [CSL-335] Process intermediate blocks ASAP.
+        PBMintermediate -> do
+            logDebug $ sformat intermediateFormat (headerHash blk)
+            logDebug "handleBlock: it was an intermediate one"
+        PBMfinal blocks -> do
+            logDebug "handleBlock: it was final block, launching handleBlocks"
+            handleBlocks blocks
+        PBMunsolicited ->
+            -- TODO: ban node for sending unsolicited block.
+            logDebug "handleBlock: got unsolicited"
+  where
+    intermediateFormat = "Received intermediate block " %shortHashF
 
 handleBlocks
     :: forall ssc m.

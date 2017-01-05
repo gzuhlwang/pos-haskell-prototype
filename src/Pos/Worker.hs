@@ -23,6 +23,7 @@ import           Pos.Types              (SlotId, flattenSlotId, slotIdF)
 import           Pos.Util               (waitRandomInterval)
 import           Pos.Worker.Stats       (statsWorkers)
 import           Pos.WorkMode           (WorkMode)
+import           Node                   (sendTo)
 
 -- | Run all necessary workers in separate threads. This call doesn't
 -- block.
