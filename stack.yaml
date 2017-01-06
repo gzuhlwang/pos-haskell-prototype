@@ -19,8 +19,8 @@ packages:
   extra-dep: true
 - location:
     git: https://github.com/serokell/kademlia.git
-    # commit: 278171b8ab104c78aa95bcdd9b63c8ced4fb1ed2
-    commit: 062053ed11b92c8e25d4d61ea943506fd0482fa6
+    commit: 278171b8ab104c78aa95bcdd9b63c8ced4fb1ed2
+    # commit: 062053ed11b92c8e25d4d61ea943506fd0482fa6
   extra-dep: true
 - location:
     git: https://github.com/input-output-hk/plutus-prototype
@@ -37,8 +37,7 @@ packages:
   extra-dep: true
 - location:
     git: https://github.com/serokell/tw-rework-sketch
-    # commit: 5ecdb79d7cf5556282fd3c936a2f25d3713f0817
-    commit: 463d0caec09c4f6889871a7f91d1b2dfc89a1b95
+    commit: 9415f8430f11fce137b1a380542d77a6f93c42e0
   extra-dep: true  
 nix:
   shell-file: shell.nix

@@ -7,10 +7,11 @@
 
 module Pos.DHT.Model.Neighbors where
 
-import           Control.Monad.Catch                    (catch)
+import           Control.Monad.Catch                    (SomeException, catch)
 import           Control.Monad                          (sequence)
 import           Data.ByteString.Char8                  (pack)
 
+import           Universum
 import           Pos.DHT.Model.Types                    (DHTNodeType(..))
 import           Pos.DHT.Model.Class.BiP
 import           Pos.DHT.Model.Class.MonadDHT           (MonadDHT)
@@ -32,28 +33,29 @@ sendToNeighbors
     -> body
     -> m ()
 sendToNeighbors sender msg = do
-    nodes <- filterByNodeType DHTFull <$> getKnownPeers
-    succeed <- sendToNodes nodes
-    succeed' <-
-        if succeed < neighborsSendThreshold
-            then (+) succeed <$>
-                 do nodes' <- discoverPeers DHTFull
-                    let newNodes = filter (flip notElem nodes) nodes'
-                    sendToNodes newNodes
-            else return succeed
-    when (succeed' < neighborsSendThreshold) $
-        logWarning $ sformat ("Send to only " % int % " nodes, threshold is " % int) succeed' (neighborsSendThreshold :: Int)
-    return succeed'
-  where
-    sendToNodes nodes = length . filter identity <$> sequence (map send' nodes) -- TODO: Should we use 'sequence' explicitly?
-    send' node = sendToOneNode `catch` handleE
-      where
-        sendToOneNode = do
-            let (host, port) = dhtAddr node
-                anId = NodeId $ host <> ":" <> (pack . show $ port) -- TODO: What about node index, i.e. last number in '127.0.0.1:3000:0' ?
-            sender anId (messageName msg) msg 
-            return True
+    --nodes <- filterByNodeType DHTFull <$> getKnownPeers
+    --succeed <- sendToNodes nodes
+    --succeed' <-
+    --    if succeed < neighborsSendThreshold
+    --        then (+) succeed <$>
+    --             do nodes' <- discoverPeers DHTFull
+    --                let newNodes = filter (flip notElem nodes) nodes'
+    --                sendToNodes newNodes
+    --        else return succeed
+    --when (succeed' < neighborsSendThreshold) $
+    --    logWarning $ sformat ("Send to only " % int % " nodes, threshold is " % int) succeed' neighborsSendThreshold
+    --return succeed'
+    return ()
+  --where
+    --sendToNodes nodes = length . filter identity <$> sequence (map send' nodes) -- TODO: Should we use 'sequence' explicitly?
+    --send' node = sendToOneNode `catch` handleE
+    --  where
+    --    sendToOneNode = do
+    --        let (host, port) = dhtAddr node
+    --            anId = NodeId $ host <> ":" <> (pack . show $ port) -- TODO: What about node index, i.e. last number in '127.0.0.1:3000:0' ?
+    --        sender anId (messageName msg) msg 
+    --        return True
                 
-        handleE (e :: SomeException) = do
-            logInfo $ sformat ("Error sending message to " % F.build % ": " % shown) node e
-            return False
+    --    handleE (e :: SomeException) = do
+    --        logInfo $ sformat ("Error sending message to " % F.build % ": " % shown) node e
+    --        return False

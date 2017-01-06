@@ -20,29 +20,31 @@ import           Universum
 
 import           Pos.Binary.Communication            ()
 import           Pos.Block.Network.Server            (blkForkStrategy, blockListeners)
-import           Pos.Communication.Server.Delegation (delegationListeners)
-import           Pos.Communication.Server.Protocol   (protocolListeners)
+-- import           Pos.Communication.Server.Delegation (delegationListeners)
+-- import           Pos.Communication.Server.Protocol   (protocolListeners)
 import           Pos.Communication.Server.SysStart
 import           Pos.Communication.Types             (MutSocketState)
 import           Pos.Communication.Util              (modifyListenerLogger)
-import           Pos.DHT.Model                       (ListenerDHT, MonadDHTDialog)
-import           Pos.Ssc.Class.Listeners             (SscListenersClass, sscListeners)
-import           Pos.Txp.Listeners                   (txListeners)
+--import           Pos.DHT.Model                       (ListenerDHT, MonadDHTDialog)
+import           Pos.Ssc.Class.Listeners             (SscListenersClass) -- , sscListeners)
+-- import           Pos.Txp.Listeners                   (txListeners)
 import           Pos.WorkMode                        (WorkMode)
 import           Mockable.Monad                      (MonadMockable)
+import           Node                                (Listener(..))
+import           Message.Message                     (BinaryP(..))
 
 -- | All listeners running on one node.
 allListeners
-    :: (SscListenersClass ssc, MonadDHTDialog (MutSocketState ssc) m, WorkMode ssc m)
-    => [ListenerDHT (MutSocketState ssc) m]
+    :: (SscListenersClass ssc, WorkMode ssc m)
+    => [Listener BinaryP m]
 allListeners =
     map (modifyListenerLogger serverLoggerName) $
     concat
         [ map (modifyListenerLogger "block") blockListeners
-        , map (modifyListenerLogger "ssc") $ untag sscListeners
-        , map (modifyListenerLogger "tx") txListeners
-        , map (modifyListenerLogger "delegation") delegationListeners
-        , map (modifyListenerLogger "protocol") protocolListeners
+        --, map (modifyListenerLogger "ssc") $ untag sscListeners
+        --, map (modifyListenerLogger "tx") txListeners
+        --, map (modifyListenerLogger "delegation") delegationListeners
+        --, map (modifyListenerLogger "protocol") protocolListeners
         ]
 
 -- | ForkStrategy of whole server.

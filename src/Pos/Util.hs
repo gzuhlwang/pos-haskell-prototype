@@ -77,9 +77,10 @@ import           Control.Lens                  (Lens', LensLike', Magnified, Zoo
 import           Control.Lens.Internal.FieldTH (makeFieldOpticsForDec)
 import           Control.Monad.Fail            (MonadFail, fail)
 import qualified Control.Monad                 as Monad (fail)
-import           Control.TimeWarp.Rpc          (Message (messageName), MessageName)
+import           Control.TimeWarp.Rpc          (Message (messageName), MessageName,
+                                                Dialog(..), ResponseT(..), Transfer(..))
 import           Control.TimeWarp.Timed        (Microsecond,
-                                                Second, for)
+                                                Second, for, TimedIO)
 import           Mockable.Concurrent           (wait, fork, killThread)
 import           Mockable.Monad                (MonadMockable)
 

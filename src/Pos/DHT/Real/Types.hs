@@ -29,10 +29,15 @@ import           System.Wlog               (CanLog, HasLoggerName)
 import           Universum                 hiding (async, fromStrict, mapConcurrently,
                                             toStrict)
 
-import           Pos.DHT.Model.Class       (DHTMsgHeader (..), ListenerDHT (..),
-                                            WithDefaultMsgHeader (..))
+--import           Pos.DHT.Model.Class       (WithDefaultMsgHeader (..))
 import           Pos.DHT.Model.Types       (DHTData, DHTKey, DHTNode (..),
                                             DHTNodeType (..))
+import           Message.Message           (BinaryP)
+import           Node                      (Listener(..))
+import           Mockable.Monad            (MonadMockable)
+import           Mockable.Class            (Mockable)
+import           Mockable.Channel          (Channel(..))
+import           Mockable.Concurrent       (Fork(..))
 
 toBSBinary :: Bi b => b -> BS.ByteString
 toBSBinary = toStrict . encode
@@ -74,7 +79,7 @@ data KademliaDHTContext m = KademliaDHTContext
 -- | Configuration for particular 'KademliaDHTInstance'.
 data KademliaDHTConfig s m = KademliaDHTConfig
     { kdcPort                :: !Word16
-    , kdcListeners           :: ![ListenerDHT s (KademliaDHT m)]
+    , kdcListeners           :: ![Listener BinaryP m]
     , kdcMessageCacheSize    :: !Int
     , kdcEnableBroadcast     :: !Bool
     , kdcNoCacheMessageNames :: ![Text]
@@ -94,6 +99,28 @@ newtype KademliaDHT m a = KademliaDHT
     { unKademliaDHT :: ReaderT (KademliaDHTContext m) m a
     } deriving (Functor, Applicative, Monad, MonadFail, MonadThrow, MonadCatch, MonadIO,
                 MonadMask, MonadDialog s p, CanLog, HasLoggerName)
+
+-- deriving instance KademliaDHT (Mockable Fork m) m a 
+
+
+
+ --   • No instance for (Mockable
+ --                        Fork (ReaderT (KademliaDHTContext m) m))
+ --       arising from the 'deriving' clause of a data type declaration
+ --      Possible fix:
+ --      use a standalone 'deriving instance' declaration,
+ --         so you can specify the instance context yourself
+ --   • When deriving the instance for (Mockable Fork (KademliaDHT m))
+
+
+
+
+
+
+
+
+
+
 
 instance MonadResponse s m => MonadResponse s (KademliaDHT m) where
     replyRaw dat = KademliaDHT $ replyRaw (hoist unKademliaDHT dat)
@@ -117,22 +144,22 @@ instance MonadTransfer s m => MonadTransfer s (KademliaDHT m) where
     close = lift . close
     userState = lift . userState
 
-instance Applicative m => WithDefaultMsgHeader (KademliaDHT m) where
-    defaultMsgHeader _ = do
+--instance Applicative m => WithDefaultMsgHeader (KademliaDHT m) where
+--    defaultMsgHeader _ = do
         --     Caches are disabled now for non-broadcast messages
         --     uncomment lines below to enable them
         --noCacheNames <- KademliaDHT $ asks kdcNoCacheMessageNames_
         --let header =
         --        SimpleHeader . isJust . find (== messageName' msg) $
         --        noCacheNames
-        let header = SimpleHeader True
+--        let header = SimpleHeader True
         --withDhtLogger $
         --    logDebug $
         --    sformat
         --        ("Preparing message " % stext % ": header " % shown)
         --        (messageName' msg)
         --        header
-        pure header
+--        pure header
 
 instance MonadTrans KademliaDHT where
   lift = KademliaDHT . lift

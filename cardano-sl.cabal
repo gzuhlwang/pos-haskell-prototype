@@ -82,7 +82,7 @@ library
                         Pos.Ssc.Class.LocalData
                         Pos.Ssc.Extra
                         Pos.Statistics
-                        Pos.Txp.Listeners
+                        -- Pos.Txp.Listeners
                         Pos.Types
                         Pos.Types.Address
                         Pos.Types.Arbitrary
