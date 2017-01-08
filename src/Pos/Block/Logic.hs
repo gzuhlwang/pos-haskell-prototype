@@ -43,7 +43,7 @@ import           Universum
 import           Pos.Constants             (curProtocolVersion, curSoftwareVersion, k)
 import           Pos.Context               (NodeContext (ncSecretKey), getNodeContext,
                                             putBlkSemaphore, readBlkSemaphore,
-                                            readLeaders, takeBlkSemaphore)
+                                            readLeadersExpEpoch, takeBlkSemaphore)
 import           Pos.Crypto                (SecretKey, WithHash (WithHash), hash,
                                             shortHashF)
 import           Pos.Data.Attributes       (mkAttributes)
@@ -375,7 +375,7 @@ createGenesisBlockDo
        WorkMode ssc m
     => EpochIndex -> m (Maybe (GenesisBlock ssc))
 createGenesisBlockDo epoch = do
-    leaders <- readLeaders
+    leaders <- readLeadersExpEpoch epoch
     res <- withBlkSemaphore (createGenesisBlockCheckAgain leaders)
     res <$ inAssertMode (logDebug . sformat newTipFmt =<< readBlkSemaphore)
   where

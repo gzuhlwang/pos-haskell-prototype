@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Pos.Ssc.GodTossing.Richmen
        (
          gtLrcConsumer

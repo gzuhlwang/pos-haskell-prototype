@@ -13,7 +13,7 @@ import qualified Data.HashMap.Strict      as HM
 import qualified Data.List.NonEmpty       as NE
 import           Formatting               (build, sformat, (%))
 import           Serokell.Util.Exceptions ()
-import           System.Wlog              (logInfo)
+import           System.Wlog              (logInfo, logDebug)
 import           Universum
 
 import           Pos.Binary.Communication ()
@@ -52,10 +52,7 @@ lrcOnNewSlotImpl consumers slotId
             logInfo $ "LRC computation is starting"
             withBlkSemaphore_ $ lrcDo slotId expectedRichmenComp
             logInfo $ "LRC computation has finished"
-    | otherwise = do
-        nc <- getNodeContext
-        lrcConsumersClear consumers
-        clearMVar $ ncSscLeaders nc
+    | otherwise = lrcConsumersClear consumers
 
 lrcDo :: WorkMode ssc m
       => SlotId -> [LrcConsumer m] -> HeaderHash ssc -> m (HeaderHash ssc)
@@ -107,8 +104,8 @@ leadersComputationDo SlotId {siEpoch = epochId} = do
                 Left e     -> panic $ sformat ("SSC couldn't compute seed: "%build) e
                 Right seed -> mapUtxoIterator @(TxIn, TxOutAux) @TxOutAux
                               (followTheSatoshiM seed totalStake) snd
-        writeLeaders leaders
-    leaders <- readLeaders
+        writeLeaders epochId leaders
+    (epochId, leaders) <- readLeaders
     putLeaders epochId leaders
 
 lrcConsumersClear :: WorkMode ssc m => [LrcConsumer m] -> m ()

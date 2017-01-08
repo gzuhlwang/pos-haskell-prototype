@@ -65,4 +65,4 @@ initLeaders :: WorkMode ssc m => m ()
 initLeaders = do
     (epochIndex, leaders) <- DB.getLeaders
     SlotId {..} <- getCurrentSlot
-    when (siSlot < k && siEpoch == epochIndex) $ writeLeaders leaders
+    when (siSlot < k && siEpoch == epochIndex) $ writeLeaders epochIndex leaders
