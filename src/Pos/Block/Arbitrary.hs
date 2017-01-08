@@ -1,8 +1,11 @@
 {-# LANGUAGE UndecidableInstances #-}
 
-module Pos.Block.Arbitrary () where
+module Pos.Block.Arbitrary
+       ( BlockHeaderList (..)
+       )
+       where
 
-import           Test.QuickCheck     (Arbitrary (..), Gen, listOf, oneof)
+import           Test.QuickCheck     (Arbitrary (..), Gen, listOf, oneof, vectorOf)
 import           Universum
 
 import           Pos.Binary          (Bi)
@@ -156,3 +159,8 @@ instance (Arbitrary (SscProof ssc), Bi Raw, Ssc ssc) => Arbitrary (T.MsgHeaders 
 instance (Arbitrary (SscProof ssc), Arbitrary (SscPayload ssc), Ssc ssc) =>
     Arbitrary (T.MsgBlock ssc) where
     arbitrary = T.MsgBlock <$> arbitrary
+
+
+newtype BlockHeaderList ssc = BHL
+    { getHeaderList :: [T.BlockHeader ssc]
+    } deriving (Show, Eq)
