@@ -9,6 +9,9 @@
 
 [//]: # (This document is too verbose now)
 
+[//]: # (TODO: When we have a glossary, make sure that all the)
+[//]: # (      terms mentioned in this document are hyperlinked)
+
 Cardano SL (SL stands for "Settlement Layer") is a cryptographic
 currency designed and developed by [IOHK](https://iohk.io/team). You can
 think of this product as of Bitcoin reimagined with a freedom to fix
@@ -64,7 +67,7 @@ receive money and issue refunds and a personal "wallet" for their own
 needs. All of this is controlled from one interface and there is no need
 to log in to several payment platforms, suffering an overhead.
 
-### Security
+#### Security
 
 Your money are as secure as the _secret key_ that allows spending those.
 That means that storing your secret key in a safe on a laptop
@@ -72,9 +75,9 @@ disconnected from the Internet is equivalent of having banknotes in a
 password-protected lock-box in a safe. Absolutely nobody can steal this
 money even by carrying out a successful cyber-attack.
 
-### Extensibility
+#### Extensibility
 
-Using an approach known as "side chains", general-purpose
+Using an approach known as [_side chains_](), general-purpose
 cryptocurrencies (such as Cardano SL or Bitcoin) can "fuel"
 domain-specific cryptocurrencies, such as Ethereum Classic. This way,
 whatever innovative thing is developed via a domain-specific
@@ -147,4 +150,16 @@ of Stake in Cardano SL]().
 
 ## Beyond Settlement Layer
 
-_Pending_
+Cardano SL is a "Layer" for a reason. It's the first component of
+Cardano Platform. Eventually it will be expanded with Control Layer,
+which will serve as trusted computation framework to evaluate special
+kind of proofs that a certain computation was carried out correctly. In
+gaming and gambling, such system can be useful for verifying honesty of
+random number generation and game outcomes. Accompanied with [side
+chains]() it will allow to accomplish such things as provably fair
+distribution of winnings in games. The application of Control Layer lies
+well beyond gaming and gambling applications. Identity management,
+credit system and more will be a part of Cardano Platform. We are also
+aiming to grow Cardano SL wallet program called [Daedalus]() into a
+universal cryptocurrency wallet with automated cryptocurrency trading
+and even cryptocurrency-to-fiat transactions.
