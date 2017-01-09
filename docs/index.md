@@ -150,6 +150,8 @@ of Stake in Cardano SL]().
 
 ## Beyond Settlement Layer
 
+[//]: # (<2017-02-20>)
+
 Cardano SL is a "Layer" for a reason. It's the first component of
 Cardano Platform. Eventually it will be expanded with Control Layer,
 which will serve as trusted computation framework to evaluate special
