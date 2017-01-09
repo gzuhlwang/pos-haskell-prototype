@@ -107,13 +107,43 @@ cryptocurrencies. Most significant difference between Bitcoin and
 Cardano SL is that Bitcoin is a Proof of Work type cryptocurrency, while
 Cardano SL makes use of a Proof of Stake approach to consensus.
 
+### Purpose of a Consensus Algorithm
+
+Consensus algorithms are used to produce new blocks of transactions,
+updating the state of the ledger as a result. Whenever someone publishes
+a block of transactions, they (or rather, their node that runs a
+cryptocurrency protocol) have to attach a proof that they had the right
+to do it. Below we discuss two types of such proofs.
+
 ### Proof of Work and Mining
 
-_Pending_
+Proof of Work is the most common consensus algorithm type for
+cryptocurrencies. It originated in Bitcoin and is the reason why this
+currency works well. To generate a proof of work, a computer has to
+solve a challenge. The challenge is a computationally-heavy problem
+which is hard to solve, but simple to verify a solution to. When a
+computer on a Proof of Work-based network finds a solution, it publishes
+it, along with the transactions that given computer observed while
+cracking the problem. The owner of this computer collects transaction
+fees and reward for generating a block. This whole process is called
+_mining_. Mining is very energy-consuming and the more competitive
+mining gets, the more energy-consuming it is.
 
 ### Proof of Stake and Minting
 
-_Pending_
+Proof of Stake is a novel approach to block generation. IOHK scientists,
+lead by [Prof. Aggelos Kiayias](https://iohk.io/team/aggelos-kiayias/)
+have designed the first provably secure proof of stake algorithm called
+Ouroboros. Ouroboros lies at the heart of Cardano SL. Research team has
+published a
+[whitepaper](https://files.zotero.net/5219872957/Ouroboros%20A%20Provably%20Secure%20Proof-of-Stake%20Blockchain%20Protocol.pdf)
+which is a worthy read for anyone with background in cryptocurrency
+theory. The core idea of proof of stake is that instead of wasting
+electricity on cracking computationally-heavy problem, a node gets
+selected to mint a new block, proportionally to the amount of the value
+a particular node has. A node that attempts to generate a block is
+called "a stakeholder". You can read more about this process in [Proof
+of Stake in Cardano SL]().
 
 ## Beyond Settlement Layer
 
