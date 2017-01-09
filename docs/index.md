@@ -136,7 +136,7 @@ lead by [Prof. Aggelos Kiayias](https://iohk.io/team/aggelos-kiayias/)
 have designed the first provably secure proof of stake algorithm called
 Ouroboros. Ouroboros lies at the heart of Cardano SL. Research team has
 published a
-[whitepaper](https://files.zotero.net/5219872957/Ouroboros%20A%20Provably%20Secure%20Proof-of-Stake%20Blockchain%20Protocol.pdf)
+[whitepaper](https://iohk.io/research/papers/a-provably-secure-proof-of-stake-blockchain-protocol/)
 which is a worthy read for anyone with background in cryptocurrency
 theory. The core idea of proof of stake is that instead of wasting
 electricity on cracking computationally-heavy problem, a node gets
