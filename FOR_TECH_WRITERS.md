@@ -128,7 +128,7 @@ Sprint-related Changes
 As a part of sprint planning, markers should be inserted in the
 documentation that shall mark sections as unverified after a particular
 date. Syntax for sprint-related changes is the following:
-`[//]: <2017-01-29>`.
+`[//]: # <2017-01-29>`.
 
 Feedback Request Marker
 ---
