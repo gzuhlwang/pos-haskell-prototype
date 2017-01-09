@@ -106,38 +106,33 @@ hasn't been written yet and if there are any blockers, a commentary
 about the blocker should be inserted. Example:
 
 ```
-Subject
----
+## Subject
 
 _Pending_
 [//]: # (Reason: This feature hasn't been finalized yet, @gromak to provide details.)
 [//]: # (Blocked by [CSL-228].)
 ```
 
-Subject to Change Marker
----
+## Subject to Change Marker
 
 If a certain feature is subject to change, a commentary `[//]: # (STC)`
 or `[//]: # (STC [CSL-228])` must be added. In first case whenever an
 issue is closed, a branch is merged or a new version is released, STC
 sections will become unverified and a maintenance shall be required.
 
-Sprint-related Changes
----
+## Sprint-related Changes
 
 As a part of sprint planning, markers should be inserted in the
 documentation that shall mark sections as unverified after a particular
 date. Syntax for sprint-related changes is the following:
 `[//]: # <2017-01-29>`.
 
-Feedback Request Marker
----
+## Feedback Request Marker
 
 _Pending_
 [//]: # (Specification of Feedback Request Marker semantics to be developed)
 
-Documentation Report Scripts
----
+## Documentation Report Scripts
 
 _Pending_
 [//]: # (There's not enough time to automate doc report generation now)
